@@ -17,27 +17,33 @@
           <n-table :bordered="false" size="small" striped>
             <thead>
               <tr>
-                <th></th>
-                <th>音乐标题</th>
-                <th>歌手</th>
-                <th>专辑</th>
-                <th>时长</th>
+                <th class="number"></th>
+                <th class="title">音乐标题</th>
+                <th class="singer">歌手</th>
+                <th class="album">专辑</th>
+                <th class="duration">时长</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>1</td>
-                <td>沉默是金</td>
-                <td>张国荣</td>
-                <td>...</td>
-                <td>04:32</td>
+                <td class="number">1</td>
+                <td class="title">沉默是金</td>
+                <td class="singer">张国荣</td>
+                <td class="album">...</td>
+                <td class="duration">04:32</td>
               </tr>
             </tbody>
           </n-table>
         </div>
       </div>
       <div class="control-box">
-        <div></div>
+        <div class="music-info">
+          <div class="music-cover"></div>
+          <div class="music-content">
+            <p><span class="music-name">沉默是金</span><span class="music-singer"> - 张国荣</span></p>
+            <p class="duration">03:45 / 04:32</p>
+          </div>
+        </div>
       </div>
     </n-config-provider>
   </div>
@@ -98,7 +104,7 @@ const switchTheme = (): void => {
 
 .content-box {
   width: 100%;
-  height: calc(100vh - 61.5px - 81.5px);
+  height: calc(100vh - 61.5px - 71.5px);
 
   .person-box {
     height: 100%;
@@ -115,14 +121,67 @@ const switchTheme = (): void => {
     height: 100%;
     box-sizing: border-box;
     padding: 15px;
+    .number {
+      width: 50px;
+      text-align: center;
+      color: var(--theme-desc);
+      font-size: 12px;
+    }
+    .title {
+      color: var(--theme-desc);
+      font-size: 12px;
+    }
+    .singer {
+      color: var(--theme-desc);
+      font-size: 12px;
+      width: 150px;
+    }
+    .album {
+      color: var(--theme-desc);
+      font-size: 12px;
+      width: 300px;
+    }
+    .duration {
+      color: var(--theme-desc);
+      font-size: 12px;
+      width: 70px;
+    }
   }
 }
 
 .control-box {
   width: 100%;
-  height: 80px;
+  height: 70px;
   background-color: var(--theme-nav-background);
   border-top: solid 1.5px var(--theme-border);
+  .music-info {
+    width: 300px;
+    height: 50px;
+    margin: 10px;
+    .music-cover {
+      float: left;
+      width: 50px;
+      height: 50px;
+      background-color: #CCC;
+      border-radius: 5px;
+    }
+    .music-content {
+      float: left;
+      margin-left: 10px;
+      margin-top: 4px;
+      .music-name {
+        color: var(--theme-desc);
+      }
+      .music-singer {
+        color: var(--theme-secondary);
+        font-size: 12px;
+      }
+      .duration {
+        color: var(--theme-secondary);
+        font-size: 12px;
+      }
+    }
+  }
 }
 
 @media (min-width: 750px) {
