@@ -2,10 +2,11 @@ import request from '../utils/neteaseRequest'
 
 
 // 歌手分类列表
-export function getArtistList() {
+export function getArtistList(data) {
   return request({
       url: '/artist/list',
-      method: 'get'
+      method: 'get',
+      params: data
   });
 }
 

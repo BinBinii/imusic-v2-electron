@@ -3,7 +3,7 @@ import axios from 'axios'
 // 创建axios
 const $http = axios.create({
     //设置默认请求地址
-    baseURL: 'https://127.0.0.1',
+    baseURL: 'http://127.0.0.1',
     // baseURL: '/api',
     //设置请求超时时间
     timeout: 5000,

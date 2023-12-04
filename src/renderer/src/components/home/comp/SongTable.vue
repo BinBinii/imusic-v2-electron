@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="song-table">
     <n-table :bordered="false" size="small" striped>
       <thead>
         <tr>
@@ -48,7 +48,7 @@ import { NTable } from 'naive-ui';
 .album {
   color: var(--theme-desc);
   font-size: 12px;
-  width: 300px;
+  width: 250px;
 }
 
 .duration {
