@@ -4,8 +4,8 @@
       <div class="menu-box">
         <div class="logo"></div>
         <div class="menu-btn-box menu-btn-box-screen-one">
-          <div class="menu-btn-item">播放</div>
-          <div class="menu-btn-item">歌手</div>
+          <div class="menu-btn-item" :class="menuSelectedIndex == 0 ? 'menu-btn-item-selected':''" @click="menuSelectedIndex = 0">播放</div>
+          <div class="menu-btn-item" :class="menuSelectedIndex == 1 ? 'menu-btn-item-selected':''" @click="menuSelectedIndex = 1">歌手</div>
           <div class="menu-search-item">
             <n-input round size="small" placeholder="搜索"></n-input>
           </div>
@@ -23,26 +23,8 @@
           <p class="online-title">当前在线：</p>
         </div>
         <div class="song-box">
-          <n-table :bordered="false" size="small" striped>
-            <thead>
-              <tr>
-                <th class="number"></th>
-                <th class="title">音乐标题</th>
-                <th class="singer">歌手</th>
-                <th class="album">专辑</th>
-                <th class="duration">时长</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="number">1</td>
-                <td class="title">沉默是金</td>
-                <td class="singer">张国荣</td>
-                <td class="album">...</td>
-                <td class="duration">04:32</td>
-              </tr>
-            </tbody>
-          </n-table>
+          <SongTable v-if="menuSelectedIndex == 0"></SongTable>
+          <SingerTable v-if="menuSelectedIndex == 1"></SingerTable>
         </div>
       </div>
       <div class="control-box">
@@ -59,11 +41,17 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { NTable, darkTheme, NConfigProvider, NInput } from 'naive-ui';
+import { darkTheme, NConfigProvider, NInput } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
+import SongTable from './comp/SongTable.vue'
+import SingerTable from './comp/SingerTable.vue'
 
+// 主题
 const theme = ref<GlobalTheme | null>(null)
 const currentTheme = ref('light')
+
+// 导航栏
+const menuSelectedIndex = ref(0)
 
 onMounted(() => {
 
@@ -91,6 +79,9 @@ const switchTheme = (): void => {
 
   .menu-btn-box {
     float: left;
+    .menu-btn-item-selected {
+      color: var(--theme-center-color);
+    }
   }
 
   .switch-theme {
@@ -121,36 +112,6 @@ const switchTheme = (): void => {
     height: 100%;
     box-sizing: border-box;
     padding: 15px;
-
-    .number {
-      width: 50px;
-      text-align: center;
-      color: var(--theme-desc);
-      font-size: 12px;
-    }
-
-    .title {
-      color: var(--theme-desc);
-      font-size: 12px;
-    }
-
-    .singer {
-      color: var(--theme-desc);
-      font-size: 12px;
-      width: 150px;
-    }
-
-    .album {
-      color: var(--theme-desc);
-      font-size: 12px;
-      width: 300px;
-    }
-
-    .duration {
-      color: var(--theme-desc);
-      font-size: 12px;
-      width: 70px;
-    }
   }
 }
 
