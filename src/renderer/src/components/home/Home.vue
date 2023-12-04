@@ -3,11 +3,20 @@
     <n-config-provider :theme="theme">
       <div class="menu-box">
         <div class="logo"></div>
-        <div class="menu-btn-box">
+        <div class="menu-btn-box menu-btn-box-screen-one">
           <div class="menu-btn-item">播放</div>
-          <div class="menu-btn-item">搜索</div>
+          <div class="menu-btn-item">歌手</div>
+          <div class="menu-search-item">
+            <n-input round size="small" placeholder="搜索"></n-input>
+          </div>
+          <div class="switch-theme" @click="switchTheme">切换主题</div>
         </div>
-        <div class="switch-theme" @click="switchTheme">切换主题</div>
+        <div class="menu-btn-box menu-btn-box-screen-two">
+          <div class="menu-search-item">
+            <n-input round size="small" placeholder="搜索"></n-input>
+          </div>
+          <div class="menu-btn-item"></div>
+        </div>
       </div>
       <div class="content-box">
         <div class="person-box">
@@ -50,7 +59,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { NTable, darkTheme, NConfigProvider } from 'naive-ui';
+import { NTable, darkTheme, NConfigProvider, NInput } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
 
 const theme = ref<GlobalTheme | null>(null)
@@ -82,15 +91,6 @@ const switchTheme = (): void => {
 
   .menu-btn-box {
     float: left;
-
-    .menu-btn-item {
-      float: left;
-      width: 80px;
-      height: 100%;
-      text-align: center;
-      line-height: 60px;
-      cursor: pointer;
-    }
   }
 
   .switch-theme {
@@ -121,26 +121,31 @@ const switchTheme = (): void => {
     height: 100%;
     box-sizing: border-box;
     padding: 15px;
+
     .number {
       width: 50px;
       text-align: center;
       color: var(--theme-desc);
       font-size: 12px;
     }
+
     .title {
       color: var(--theme-desc);
       font-size: 12px;
     }
+
     .singer {
       color: var(--theme-desc);
       font-size: 12px;
       width: 150px;
     }
+
     .album {
       color: var(--theme-desc);
       font-size: 12px;
       width: 300px;
     }
+
     .duration {
       color: var(--theme-desc);
       font-size: 12px;
@@ -154,10 +159,12 @@ const switchTheme = (): void => {
   height: 70px;
   background-color: var(--theme-nav-background);
   border-top: solid 1.5px var(--theme-border);
+
   .music-info {
     width: 300px;
     height: 50px;
     margin: 10px;
+
     .music-cover {
       float: left;
       width: 50px;
@@ -165,17 +172,21 @@ const switchTheme = (): void => {
       background-color: #CCC;
       border-radius: 5px;
     }
+
     .music-content {
       float: left;
       margin-left: 10px;
       margin-top: 4px;
+
       .music-name {
         color: var(--theme-desc);
       }
+
       .music-singer {
         color: var(--theme-secondary);
         font-size: 12px;
       }
+
       .duration {
         color: var(--theme-secondary);
         font-size: 12px;
@@ -185,6 +196,19 @@ const switchTheme = (): void => {
 }
 
 @media (min-width: 750px) {
+  .menu-btn-box {
+    width: calc(100vw - 200px);
+  }
+
+  .menu-btn-item {
+    float: left;
+    width: 80px;
+    height: 100%;
+    text-align: center;
+    line-height: 60px;
+    cursor: pointer;
+  }
+
   .logo {
     float: left;
     width: 200px;
@@ -208,8 +232,21 @@ const switchTheme = (): void => {
 }
 
 @media (max-width: 750px) {
+  .menu-btn-box {
+    width: 100vw;
+  }
+
   .logo {
     display: none;
+  }
+
+  .menu-btn-item {
+    float: left;
+    width: 80px;
+    height: 100%;
+    text-align: center;
+    line-height: 60px;
+    cursor: pointer;
   }
 
   .person-box {
@@ -218,6 +255,54 @@ const switchTheme = (): void => {
 
   .song-box {
     width: 100vw;
+  }
+}
+
+@media (min-width: 500px) {
+
+  .menu-btn-box-screen-one {
+    display: block;
+  }
+
+  .menu-btn-box-screen-two {
+    display: none;
+  }
+
+  .menu-search-item {
+    float: left;
+    margin-left: 20px;
+    width: 200px;
+    height: 100%;
+    line-height: 60px;
+  }
+}
+
+@media (max-width: 500px) {
+  .menu-btn-box-screen-one {
+    display: none;
+  }
+
+  .menu-btn-box-screen-two {
+    display: block;
+  }
+
+  .menu-search-item {
+    float: left;
+    margin-left: 0px;
+    width: calc(100vw - 80px);
+    margin: 0 auto;
+    height: 100%;
+    line-height: 60px;
+    margin-left: 15px;
+  }
+
+  .menu-btn-item {
+    float: right;
+    width: 30px;
+    height: 30px;
+    background-color: #CCC;
+    margin: 15px 15px 15px 0px;
+    cursor: pointer;
   }
 }
 </style>
