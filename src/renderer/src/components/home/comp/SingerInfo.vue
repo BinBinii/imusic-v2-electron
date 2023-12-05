@@ -54,7 +54,9 @@
           <template v-for="album in albumList">
             <div class="albumn-item">
               <div class="albumn-cover">
-                <div class="pic"></div>
+                <!-- <div class="pic"></div> -->
+                <img class="pic" :src="album.picUrl" />
+                <p class="publish-time">{{ timestampToDate(album.publishTime) }}</p>
               </div>
               <div class="songs-box">
                 <div class="title">{{ album.name }}</div>
@@ -71,6 +73,8 @@
                       <span class="dt">{{ millisecondsToMinutesAndSeconds(item.dt) }}</span>
                     </div>
                   </template>
+                  <!-- <div class="more" @click="album.num = album.songs.length" v-if="album.songs.length > album.num">查看全部 >
+                  </div> -->
                   <div class="more" @click="album.num = album.songs.length">查看全部 >
                   </div>
                 </div>
@@ -179,7 +183,7 @@ const loadMore = async () => {
       setTimeout(() => {
         // 更新数据
         albumList.value = [...albumList.value, ...newData];
-      }, 500)
+      }, 1000)
     })
   } finally {
     // 加载完成后，设置加载状态为 false
@@ -214,11 +218,22 @@ const millisecondsToMinutesAndSeconds = (milliseconds: number): string => {
   return `${formattedMinutes}:${formattedSeconds}`;
 }
 
+const timestampToDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 </script>
 <style scoped lang="less">
 .singer-info {
   overflow-y: auto;
   height: calc(100vh - 160px);
+  padding-bottom: 30px;
 }
 
 .desc-box {
@@ -282,11 +297,16 @@ const millisecondsToMinutesAndSeconds = (milliseconds: number): string => {
         border-radius: 8px;
         background-color: #333;
       }
+      .publish-time {
+        font-size: 12px;
+        color: var(--theme-secondary);
+      }
     }
 
     .songs-box {
       float: right;
       width: calc(100% - 215px);
+      overflow: hidden;
 
       .title {
         height: 40px;
