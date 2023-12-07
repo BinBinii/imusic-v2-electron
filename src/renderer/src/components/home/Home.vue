@@ -17,10 +17,11 @@
             @click="menuSelectedIndex = 0">播放</div>
           <div class="menu-btn-item" :class="menuSelectedIndex == 1 ? 'menu-btn-item-selected' : ''"
             @click="menuSelectedIndex = 1">歌手</div>
-          <div class="menu-search-item">
-            <n-input round size="small" placeholder="搜索"></n-input>
-          </div>
           <div class="switch-theme" @click="switchTheme">切换主题</div>
+          <div class="menu-search-item">
+            <n-input v-model:value="searchForm.keywords" @focus="showSearchModal = true" @blur="handelSearchBlur()" round
+              size="small" placeholder="搜索"></n-input>
+          </div>
         </div>
       </div>
       <div class="content-box">
@@ -30,6 +31,42 @@
         <div class="song-box">
           <SongTable v-if="menuSelectedIndex == 0"></SongTable>
           <SingerTable v-if="menuSelectedIndex == 1"></SingerTable>
+          <SearchTable v-if="menuSelectedIndex == 2"></SearchTable>
+          <div class="search-box" v-if="showSearchModal">
+            <div class="hot-box" v-if="searchForm.keywords.length == 0">
+              <p class="hot-title">热搜榜</p>
+              <div class="hot-item" v-for="(item, index) in hotDetail">
+                <div class="hot-item-left">{{ index + 1 }}</div>
+                <div class="hot-item-right" :style="item['content'] == '' ? 'line-height: 60px' : ''">
+                  <p class="search-word" :style="item['content'] !== '' ? 'margin-top: 6px' : ''">{{ item['searchWord']
+                  }}<span class="score">{{ item['score'] }}</span></p>
+                  <p class="content" v-if="item['content']">{{ item['content'] }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="search-content" v-else>
+              <p class="more">搜"<span class="span-height-light">{{ searchForm.keywords
+              }}</span>"相关的结果 ></p>
+              <div class="panel" v-for="order in searchList.order">
+                <div class="title">
+                  <n-icon size="18" style="position: relative;top: 4px;margin-left: 10px;margin-right: 5px;">
+                    <QueueMusicRound v-if="order == 'songs'" />
+                    <MusicNoteRound v-if="order == 'playlists'" />
+                    <AlbumOutlined v-if="order == 'albums'" />
+                    <PersonOutlineRound v-if="order == 'artists'" />
+                  </n-icon>
+                  <span>{{ orderDictionary[order] }}</span>
+                </div>
+                <div class="panel-item" v-for="item in searchList[order]" @click="menuSelectedIndex = 2">
+                  <span v-html="brightenKeyword(item['name'])"></span>
+                  <span v-if="item['artist']"> - <a v-html="brightenKeyword(item['artist']['name'])"></a></span>
+                  <span v-if="item['artists']"> -
+                    <a v-for="artist in item['artists']"><span v-html="brightenKeyword(artist['name'])"></span>&nbsp;</a>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="control-box">
@@ -64,12 +101,16 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { darkTheme, NConfigProvider, NInput, NIcon } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
 import { ChevronBackOutline, ChevronForwardOutline, PauseCircle, CaretForwardCircle, PlaySkipBack, PlaySkipForward, Shuffle, VolumeLow, VolumeMedium, VolumeOff } from '@vicons/ionicons5'
+import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
 import SongTable from './comp/SongTable.vue'
 import SingerTable from './comp/SingerTable.vue'
+import SearchTable from './comp/SearchTable.vue';
+import { getHotDetail, searchSuggest } from '../../api/netease'
+import { debounce } from 'lodash';
 
 // 主题
 const theme = ref<GlobalTheme | null>(null)
@@ -78,10 +119,36 @@ const currentTheme = ref('light')
 // 导航栏
 const menuSelectedIndex = ref(0)
 
-onMounted(() => {
-
+// 热搜榜
+const hotDetail = ref([])
+const showSearchModal = ref(false)
+const searchForm = ref({
+  keywords: ''
+})
+const searchList = ref([])
+const orderDictionary = ref({
+  songs: '单曲',
+  artists: '歌手',
+  albums: '专辑',
+  playlists: '歌单'
 })
 
+onMounted(() => {
+  fetchHotDetail()
+})
+
+watch(searchForm, (newVal, _) => {
+  if (newVal.keywords && newVal.keywords !== '' && newVal.keywords !== null) {
+    handleSearch(newVal)
+  }
+}, {
+  deep: true,
+}
+);
+
+/**
+ * 切换主题
+ */
 const switchTheme = (): void => {
   if (currentTheme.value == 'light') {
     currentTheme.value = 'dark'
@@ -92,6 +159,47 @@ const switchTheme = (): void => {
     window.document.documentElement.setAttribute('theme', currentTheme.value);
     theme.value = null
   }
+}
+
+/**
+ * 获取热搜榜
+ */
+const fetchHotDetail = (): void => {
+  getHotDetail().then(res => {
+    hotDetail.value = res.data.data
+  })
+}
+
+const handelSearchBlur = (): void => {
+  menuSelectedIndex.value = 2
+  setTimeout(() => {
+    showSearchModal.value = false
+  }, 100)
+}
+
+// 延时搜索
+const handleSearch = debounce((value) => {
+  searchSuggest(value).then(res => {
+    searchList.value = res.data.result
+  })
+}, 300)
+
+// 搜索高亮
+const brightenKeyword = (val): any => {
+  let keyword = searchForm.value.keywords
+  if (keyword.length > 0) {
+    let keywordArr = keyword.split("");
+    val = val + "";
+    keywordArr.forEach(item => {
+      if (val.indexOf(item) !== -1 && item !== "") {
+        val = val.replace(
+          new RegExp(item, 'g'),
+          '<font color="#85B9E6">' + item + "</font>"
+        );
+      }
+    });
+  }
+  return val
 }
 
 </script>
@@ -138,7 +246,7 @@ const switchTheme = (): void => {
     }
 
     .menu-search-item {
-      float: left;
+      float: right;
       margin-left: 20px;
       width: 200px;
       height: 100%;
@@ -181,6 +289,116 @@ const switchTheme = (): void => {
     float: right;
     width: calc(100vw - 201.5px);
     height: 100%;
+    position: relative;
+    overflow: hidden;
+
+    .search-box {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 350px;
+      height: 100%;
+      background-color: var(--theme-search-background);
+      box-shadow: -5px 0 10px -5px rgba(0, 0, 0, .1);
+
+      .hot-box {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+
+        .hot-title {
+          font-size: 16px;
+          color: var(--theme-desc);
+          margin: 20px 0px 10px 20px;
+        }
+
+        .hot-item {
+          width: 100%;
+          height: 60px;
+          cursor: pointer;
+
+          .hot-item-left {
+            float: left;
+            width: 50px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+          }
+
+          .hot-item-right {
+            float: right;
+            width: calc(100% - 50px);
+            height: 60px;
+            line-height: 22px;
+
+            .search-word {
+              font-size: 13px;
+              color: var(--theme-color);
+
+              .score {
+                font-size: 12px;
+                color: var(--theme-secondary);
+                margin-left: 15px;
+              }
+            }
+
+            .content {
+              font-size: 12px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              color: var(--theme-desc);
+            }
+          }
+        }
+
+        .hot-item:hover {
+          background-color: var(--theme-search-hover-background);
+        }
+      }
+
+      .search-content {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+
+        .more {
+          margin: 10px 0px 0px 10px;
+          font-size: 12px;
+          color: var(--theme-desc);
+          cursor: pointer;
+        }
+
+        .more:hover {
+          color: var(--theme-color);
+        }
+
+        .panel {
+          .title {
+            height: 30px;
+            line-height: 30px;
+            margin-top: 5px;
+            color: var(--theme-desc);
+          }
+
+          .panel-item {
+            padding-left: 32px;
+            padding-right: 10px;
+            font-size: 13px;
+            height: 30px;
+            line-height: 30px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+          }
+
+          .panel-item:hover {
+            background-color: var(--theme-search-hover-background);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -240,5 +458,9 @@ const switchTheme = (): void => {
     height: 70px;
     line-height: 70px;
   }
+}
+
+.span-height-light {
+  color: var(--theme-span-height-light);
 }
 </style>

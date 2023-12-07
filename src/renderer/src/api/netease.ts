@@ -1,5 +1,21 @@
 import request from '../utils/neteaseRequest'
 
+// 获取热搜列表
+export function getHotDetail() {
+  return request({
+    url: '/search/hot/detail',
+    method: 'get'
+  });
+}
+
+// 搜索建议
+export function searchSuggest(data) {
+  return request({
+    url: '/search/suggest',
+    method: 'get',
+    params: data
+  })
+}
 
 // 歌手分类列表
 export function getArtistList(data) {
