@@ -278,6 +278,9 @@ const handelUpdateTabs = (value: string): void => {
         color: var(--theme-desc);
         font-size: 12px;
         width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .album {

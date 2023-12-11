@@ -281,7 +281,7 @@ const showSingerInfo = (id: number): void => {
   overflow-y: auto;
 
   .singer-item {
-    height: 200px;
+    padding-bottom: 20px;
 
     .pic {
       width: 100%;
