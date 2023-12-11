@@ -31,7 +31,7 @@
         <div class="song-box">
           <SongTable v-if="menuSelectedIndex == 0"></SongTable>
           <SingerTable v-if="menuSelectedIndex == 1"></SingerTable>
-          <SearchTable v-if="menuSelectedIndex == 2"></SearchTable>
+          <SearchTable v-if="menuSelectedIndex == 2" :keywords="searchForm.keywords" :key="songSearchTimer"></SearchTable>
           <div class="search-box" v-if="showSearchModal">
             <div class="hot-box" v-if="searchForm.keywords.length == 0">
               <p class="hot-title">热搜榜</p>
@@ -132,6 +132,7 @@ const orderDictionary = ref({
   albums: '专辑',
   playlists: '歌单'
 })
+const songSearchTimer = ref(0)
 
 onMounted(() => {
   fetchHotDetail()
@@ -172,6 +173,7 @@ const fetchHotDetail = (): void => {
 
 const handelSearchBlur = (): void => {
   menuSelectedIndex.value = 2
+  songSearchTimer.value = new Date().getTime()
   setTimeout(() => {
     showSearchModal.value = false
   }, 100)
@@ -191,7 +193,7 @@ const brightenKeyword = (val): any => {
     let keywordArr = keyword.split("");
     val = val + "";
     keywordArr.forEach(item => {
-      if (val.indexOf(item) !== -1 && item !== "") {
+      if (val.indexOf(item) !== -1 && item !== "" && item !== " ") {
         val = val.replace(
           new RegExp(item, 'g'),
           '<font color="#85B9E6">' + item + "</font>"

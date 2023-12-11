@@ -2,8 +2,8 @@
   <div class="search-table">
     <div class="title-box">
       <div class="song-info">
-        <span class="name">歌曲名称</span>
-        <span class="number">找到300首单曲</span>
+        <span class="name">{{ searchSongParams.keywords }}</span>
+        <span class="number">找到{{ songCount }}首单曲</span>
       </div>
       <div class="select-box">
         <span :class="titleSelected == 0 ? 'selected' : ''" @click="titleSelected = 0">单曲</span>
@@ -23,28 +23,65 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="number">1</td>
-            <td class="title">沉默是金</td>
-            <td class="singer">张国荣</td>
-            <td class="album">...</td>
-            <td class="duration">04:32</td>
+          <tr v-for="(song, index) in songs">
+            <td class="number">{{ indexFilter(index + searchSongParams.offset) }}</td>
+            <td class="title">{{ song['name'] }}</td>
+            <td class="singer">
+              <span v-for="item in song['ar']">{{ item['name'] }}&nbsp;</span>
+            </td>
+            <td class="album">{{ song['al']['name'] }}</td>
+            <td class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</td>
           </tr>
         </tbody>
       </n-table>
+      <n-pagination style="margin-top: 20px;position: absolute;
+            left: 50%;
+            transform: translate(-50%, 0);" v-model:page="pageForm.page" :page-count="pageForm.pageCount"
+        :on-update:page="handelUpdatePage" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { NTable } from 'naive-ui';
+import { NTable, NPagination } from 'naive-ui';
+import { searchSong } from '../../../api/netease'
+import { indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils/index'
 
+const props = defineProps(['keywords']);
 const titleSelected = ref(0)
 
-onMounted(() => {
-
+const searchSongParams = ref({
+  keywords: '', // 搜索关键词
+  limit: 100,   // 单页查询数量
+  offset: 0,    // 偏移量
+  type: 1       // 搜索类型；默认为 1 即单曲 , 取值意义 : 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频, 1018:综合, 2000:声音
 })
+const songCount = ref(0)
+const songs = ref([])
+
+const pageForm = ref({
+  page: 1,
+  pageCount: 200
+})
+
+onMounted(() => {
+  fetchSong()
+})
+const fetchSong = (): void => {
+  searchSongParams.value.keywords = props.keywords
+  searchSongParams.value.offset = (pageForm.value.page - 1) * searchSongParams.value.limit
+  searchSong(searchSongParams.value).then(res => {
+    songCount.value = res.data.result.songCount
+    songs.value = res.data.result.songs
+    pageForm.value.pageCount = Math.ceil(songCount.value / searchSongParams.value.limit)
+  })
+}
+
+const handelUpdatePage = (page: number): void => {
+  pageForm.value.page = page
+  fetchSong()
+}
 
 </script>
 <style scoped lang="less">
@@ -59,6 +96,7 @@ onMounted(() => {
     position: absolute;
     top: 0;
     border-bottom: solid 1px var(--theme-border);
+    background-color: var(--theme-background);
 
     .song-info {
       margin-top: 10px;
@@ -95,6 +133,9 @@ onMounted(() => {
 
   .song-box {
     padding-top: 100px;
+    padding-bottom: 60px;
+    position: relative;
+
     .number {
       width: 50px;
       text-align: center;
@@ -103,7 +144,7 @@ onMounted(() => {
     }
 
     .title {
-      color: var(--theme-desc);
+      color: var(--theme-color);
       font-size: 12px;
     }
 
@@ -125,5 +166,12 @@ onMounted(() => {
       width: 70px;
     }
   }
+}
+
+.pagination {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #CCC;
 }
 </style>

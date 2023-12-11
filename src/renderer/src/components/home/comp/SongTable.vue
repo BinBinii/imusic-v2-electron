@@ -35,7 +35,7 @@ import { NTable } from 'naive-ui';
 }
 
 .title {
-  color: var(--theme-desc);
+  color: var(--theme-color);
   font-size: 12px;
 }
 

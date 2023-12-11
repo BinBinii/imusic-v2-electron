@@ -64,10 +64,11 @@ export function getAlbum(data) {
 }
 
 // 搜索
-export function searchSong() {
+export function searchSong(data) {
   return request({
     url: '/cloudsearch',
-    method: 'get'
+    method: 'get',
+    params: data
   });
 }
 
