@@ -25,7 +25,7 @@
         <n-grid :x-gap="24" :y-gap="24" cols="3 550:4 700:5">
           <n-grid-item v-for="item in artists">
             <div class="singer-item" @click="showSingerInfo(item.id)">
-              <!-- <img class="pic" :src="item.img1v1Url" /> -->
+              <img class="pic" :src="item.img1v1Url" />
               <div class="name">{{ item.name }}</div>
             </div>
           </n-grid-item>

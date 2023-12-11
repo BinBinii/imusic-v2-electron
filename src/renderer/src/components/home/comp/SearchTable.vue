@@ -3,53 +3,78 @@
     <div class="title-box">
       <div class="song-info">
         <span class="name">{{ searchSongParams.keywords }}</span>
-        <span class="number">找到{{ songCount }}首单曲</span>
+        <span class="number" v-if="searchSongParams.type === 1">找到{{ dataCount }}首单曲</span>
+        <span class="number" v-if="searchSongParams.type === 10">找到{{ dataCount }}张专辑</span>
+        <span class="number" v-if="searchSongParams.type === 100">找到{{ dataCount }}位歌手</span>
       </div>
       <div class="select-box">
-        <span :class="titleSelected == 0 ? 'selected' : ''" @click="titleSelected = 0">单曲</span>
-        <span :class="titleSelected == 1 ? 'selected' : ''" @click="titleSelected = 1">歌手</span>
-        <span :class="titleSelected == 2 ? 'selected' : ''" @click="titleSelected = 2">专辑</span>
-      </div>
-    </div>
-    <div class="song-box">
-      <n-table :bordered="false" size="small" striped>
-        <thead>
-          <tr>
-            <th class="number"></th>
-            <th class="title">音乐标题</th>
-            <th class="singer">歌手</th>
-            <th class="album">专辑</th>
-            <th class="duration">时长</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(song, index) in songs">
-            <td class="number">{{ indexFilter(index + searchSongParams.offset) }}</td>
-            <td class="title">{{ song['name'] }}</td>
-            <td class="singer">
-              <span v-for="item in song['ar']">{{ item['name'] }}&nbsp;</span>
-            </td>
-            <td class="album">{{ song['al']['name'] }}</td>
-            <td class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</td>
-          </tr>
-        </tbody>
-      </n-table>
-      <n-pagination style="margin-top: 20px;position: absolute;
+        <n-tabs type="line" animated :on-update:value="handelUpdateTabs">
+          <n-tab-pane name="song" tab="单曲">
+            <div ref="songRef" class="song-box">
+              <div class="song-item-title">
+                <span class="number">&nbsp;</span>
+                <span class="title">音乐标题</span>
+                <span class="singer">歌手</span>
+                <span class="album">专辑</span>
+                <span class="duration">时长</span>
+              </div>
+              <div class="song-item" v-for="(song, index) in songs">
+                <span class="number">{{ indexFilter(index + searchSongParams.offset) }}</span>
+                <span class="title">{{ song['name'] }}</span>
+                <span class="singer">
+                  <text v-for="item in song['ar']">{{ item['name'] }}&nbsp;</text>
+                </span>
+                <span class="album" :title="song['al']['name']">{{ song['al']['name'] }}</span>
+                <span class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</span>
+              </div>
+              <n-pagination style="margin-top: 20px;position: absolute;
             left: 50%;
             transform: translate(-50%, 0);" v-model:page="pageForm.page" :page-count="pageForm.pageCount"
-        :on-update:page="handelUpdatePage" />
+                :on-update:page="handelUpdatePage" />
+            </div>
+          </n-tab-pane>
+          <n-tab-pane name="singer" tab="歌手">
+            <div ref="singerRef" class="singer-box">
+              <div class="singer-item" v-for="artist in artists">
+                <img class="pic" :src="artist['img1v1Url']" />
+                <p>
+                  <span class="name">{{ artist['name'] }}</span>
+                  <span class="eng-name" v-if="artist['alias'].length > 0">({{ artist['alias'][0] }})</span>
+                </p>
+              </div>
+            </div>
+          </n-tab-pane>
+          <n-tab-pane name="album" tab="专辑">
+            <div ref="albumRef" class="album-box">
+              <div class="album-item" v-for="album in albums">
+                <img class="pic" :src="album['blurPicUrl']" />
+                <div>{{ album['name'] }}</div>
+                <div>
+                  <span class="name">{{ album['artist']['name'] }}</span>
+                  <span class="eng-name" v-if="album['artist']['alias'].length > 0">({{ album['artist']['alias'][0]
+                  }})</span>
+                </div>
+              </div>
+              <n-pagination style="margin-top: 20px;position: absolute;
+            left: 50%;
+            transform: translate(-50%, 0);" v-model:page="pageForm.page" :page-count="pageForm.pageCount"
+                :on-update:page="handelUpdatePage" />
+            </div>
+          </n-tab-pane>
+        </n-tabs>
+      </div>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { NTable, NPagination } from 'naive-ui';
+import { NPagination, NTabs, NTabPane } from 'naive-ui';
 import { searchSong } from '../../../api/netease'
 import { indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils/index'
 
 const props = defineProps(['keywords']);
-const titleSelected = ref(0)
 
 const searchSongParams = ref({
   keywords: '', // 搜索关键词
@@ -57,29 +82,81 @@ const searchSongParams = ref({
   offset: 0,    // 偏移量
   type: 1       // 搜索类型；默认为 1 即单曲 , 取值意义 : 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频, 1018:综合, 2000:声音
 })
-const songCount = ref(0)
+const dataCount = ref(0)
 const songs = ref([])
+const artists = ref([])
+const albums = ref([])
 
 const pageForm = ref({
   page: 1,
-  pageCount: 200
+  pageCount: 0
 })
+
+const songRef = ref({} as Element)
+const singerRef = ref({} as Element)
+const albumRef = ref({} as Element)
 
 onMounted(() => {
   fetchSong()
 })
+// 获取歌曲搜索
 const fetchSong = (): void => {
+  let type = searchSongParams.value.type
   searchSongParams.value.keywords = props.keywords
   searchSongParams.value.offset = (pageForm.value.page - 1) * searchSongParams.value.limit
   searchSong(searchSongParams.value).then(res => {
-    songCount.value = res.data.result.songCount
-    songs.value = res.data.result.songs
-    pageForm.value.pageCount = Math.ceil(songCount.value / searchSongParams.value.limit)
+    if (type === 1) { // 单曲
+      dataCount.value = res.data.result.songCount
+      songs.value = res.data.result.songs
+      pageForm.value.pageCount = Math.ceil(dataCount.value / searchSongParams.value.limit)
+    }
+    if (type === 10) { // 专辑
+      dataCount.value = res.data.result.albumCount
+      albums.value = res.data.result.albums
+      pageForm.value.pageCount = Math.ceil(dataCount.value / searchSongParams.value.limit)
+    }
+    if (type === 100) { // 歌手
+      dataCount.value = res.data.result.artistCount
+      artists.value = res.data.result.artists
+    }
   })
 }
-
+// 歌曲下一页
 const handelUpdatePage = (page: number): void => {
   pageForm.value.page = page
+  fetchSong()
+  let type = searchSongParams.value.type
+  if (type === 1) { // 单曲
+    songRef.value.scrollTop = 0
+  }
+  if (type === 10) { // 专辑
+    albumRef.value.scrollTop = 0
+  }
+  if (type === 100) { // 歌手
+    singerRef.value.scrollTop = 0
+  }
+}
+
+const handelUpdateTabs = (value: string): void => {
+  switch (value) {
+    case 'song':
+      searchSongParams.value.limit = 100
+      searchSongParams.value.type = 1
+      break;
+    case 'singer':
+      searchSongParams.value.type = 100
+      break;
+    case 'album':
+      searchSongParams.value.limit = 20
+      searchSongParams.value.type = 10
+      break;
+    default: break;
+  }
+  searchSongParams.value.offset = 0
+  pageForm.value = {
+    page: 1,
+    pageCount: 0
+  }
   fetchSong()
 }
 
@@ -95,7 +172,6 @@ const handelUpdatePage = (page: number): void => {
     height: 90px;
     position: absolute;
     top: 0;
-    border-bottom: solid 1px var(--theme-border);
     background-color: var(--theme-background);
 
     .song-info {
@@ -112,66 +188,222 @@ const handelUpdatePage = (page: number): void => {
         color: var(--theme-secondary);
       }
     }
-
-    .select-box {
-      margin-top: 19px;
-
-      span {
-        display: block;
-        float: left;
-        margin-right: 35px;
-        height: 25px;
-        cursor: pointer;
-      }
-
-      .selected {
-        color: var(--theme-center-color);
-        border-bottom: solid 2px var(--theme-center-color);
-      }
-    }
   }
 
   .song-box {
-    padding-top: 100px;
+    height: calc(100vh - 300px);
     padding-bottom: 60px;
     position: relative;
+    overflow: auto;
 
-    .number {
-      width: 50px;
-      text-align: center;
-      color: var(--theme-desc);
-      font-size: 12px;
+    .song-item-title {
+      font-size: 13px;
+      height: 32px;
+      line-height: 32px;
+      width: 100%;
+      cursor: pointer;
+
+      .number {
+        display: block;
+        float: left;
+        width: 50px;
+        text-align: center;
+        color: var(--theme-desc);
+        font-size: 12px;
+      }
+
+      .title {
+        display: block;
+        float: left;
+        width: calc(100% - 50px - 150px - 250px - 70px);
+        color: var(--theme-color);
+        font-size: 12px;
+      }
+
+      .singer {
+        display: block;
+        float: left;
+        color: var(--theme-desc);
+        font-size: 12px;
+        width: 150px;
+      }
+
+      .album {
+        display: block;
+        float: left;
+        color: var(--theme-desc);
+        font-size: 12px;
+        width: 250px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .duration {
+        display: block;
+        float: left;
+        color: var(--theme-desc);
+        font-size: 12px;
+        width: 70px;
+      }
     }
 
-    .title {
-      color: var(--theme-color);
-      font-size: 12px;
+    .song-item {
+      font-size: 13px;
+      height: 32px;
+      line-height: 32px;
+      width: 100%;
+      cursor: pointer;
+
+      .number {
+        display: block;
+        float: left;
+        width: 50px;
+        text-align: center;
+        color: var(--theme-desc);
+        font-size: 12px;
+      }
+
+      .title {
+        display: block;
+        float: left;
+        width: calc(100% - 50px - 150px - 250px - 70px);
+        color: var(--theme-color);
+        font-size: 12px;
+      }
+
+      .singer {
+        display: block;
+        float: left;
+        color: var(--theme-desc);
+        font-size: 12px;
+        width: 150px;
+      }
+
+      .album {
+        display: block;
+        float: left;
+        color: var(--theme-desc);
+        font-size: 12px;
+        width: 250px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .duration {
+        display: block;
+        float: left;
+        color: var(--theme-desc);
+        font-size: 12px;
+        width: 70px;
+      }
     }
 
-    .singer {
-      color: var(--theme-desc);
-      font-size: 12px;
-      width: 150px;
+    .song-item:nth-child(even) {
+      background-color: var(--theme-table-interval);
     }
 
-    .album {
-      color: var(--theme-desc);
-      font-size: 12px;
-      width: 250px;
-    }
-
-    .duration {
-      color: var(--theme-desc);
-      font-size: 12px;
-      width: 70px;
+    .song-item:hover {
+      background-color: var(--theme-table-hover);
     }
   }
-}
 
-.pagination {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #CCC;
+  .singer-box {
+    height: calc(100vh - 300px);
+    padding-bottom: 60px;
+    position: relative;
+    overflow: auto;
+
+    .singer-item {
+      width: 100%;
+      height: 90px;
+      cursor: pointer;
+
+      .pic {
+        width: 65px;
+        height: 65px;
+        background-color: #CCC;
+        border-radius: 6px;
+        float: left;
+        margin: 12px;
+      }
+
+      p {
+        line-height: 90px;
+
+        .name {
+          color: var(--theme-color);
+        }
+
+        .eng-name {
+          color: var(--theme-desc);
+          margin-left: 5px;
+        }
+      }
+    }
+
+    .singer-item:nth-child(even) {
+      background-color: var(--theme-table-interval);
+    }
+
+    .singer-item:hover {
+      background-color: var(--theme-table-hover);
+    }
+  }
+
+  .album-box {
+    height: calc(100vh - 300px);
+    padding-bottom: 60px;
+    position: relative;
+    overflow: auto;
+
+    .album-item {
+      width: 100%;
+      height: 90px;
+      clear: both;
+      cursor: pointer;
+
+      .pic {
+        width: 65px;
+        height: 65px;
+        background-color: #CCC;
+        border-radius: 6px;
+        float: left;
+        margin: 12px;
+      }
+
+      div {
+        line-height: 90px;
+        float: left;
+        color: var(--theme-color);
+
+        .name {
+          font-size: 12px;
+          color: var(--theme-desc);
+        }
+
+        .eng-name {
+          font-size: 12px;
+          color: var(--theme-secondary);
+          margin-left: 5px;
+        }
+      }
+
+      div:last-child {
+        float: right;
+        margin-right: 100px;
+        width: 250px;
+      }
+    }
+
+    .album-item:nth-child(even) {
+      background-color: var(--theme-table-interval);
+    }
+
+    .album-item:hover {
+      background-color: var(--theme-table-hover);
+    }
+  }
 }
 </style>

@@ -25,7 +25,6 @@
     <div class="song-box">
       <n-tabs type="line" animated>
         <n-tab-pane name="album" tab="专辑">
-
           <div class="albumn-item">
             <div class="albumn-cover">
               <div class="pic"></div>
@@ -54,7 +53,6 @@
           <template v-for="album in albumList">
             <div class="albumn-item">
               <div class="albumn-cover">
-                <!-- <div class="pic"></div> -->
                 <img class="pic" :src="album.picUrl" />
                 <p class="publish-time">{{ timestampToDate(album.publishTime) }}</p>
               </div>
