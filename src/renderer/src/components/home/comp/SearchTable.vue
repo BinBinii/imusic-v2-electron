@@ -21,9 +21,7 @@
               <div class="song-item" v-for="(song, index) in songs">
                 <span class="number">{{ indexFilter(index + searchSongParams.offset) }}</span>
                 <span class="title">{{ song['name'] }}</span>
-                <span class="singer">
-                  <text v-for="item in song['ar']">{{ item['name'] }}&nbsp;</text>
-                </span>
+                <span class="singer" :title="singerSummary(song['ar'])">{{ singerSummary(song['ar']) }}</span>
                 <span class="album" :title="song['al']['name']">{{ song['al']['name'] }}</span>
                 <span class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</span>
               </div>
@@ -122,6 +120,14 @@ const fetchSong = (): void => {
     }
   })
 }
+// 歌手汇总
+const singerSummary = (singers: any[]): string => {
+  let result = ''
+  singers.forEach(item => {
+    result += item['name'] + ' '
+  })
+  return result
+}
 // 歌曲下一页
 const handelUpdatePage = (page: number): void => {
   pageForm.value.page = page
@@ -138,6 +144,7 @@ const handelUpdatePage = (page: number): void => {
   }
 }
 
+// 分页更新
 const handelUpdateTabs = (value: string): void => {
   switch (value) {
     case 'song':
@@ -271,6 +278,9 @@ const handelUpdateTabs = (value: string): void => {
         width: calc(100% - 50px - 150px - 250px - 70px);
         color: var(--theme-color);
         font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .singer {

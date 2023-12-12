@@ -53,7 +53,7 @@
               </div>
             </div>
             <div class="search-content" v-else>
-              <p class="more">搜"<span class="span-height-light">{{ searchForm.keywords
+              <p class="more" @click="toSearchTable">搜"<span class="span-height-light">{{ searchForm.keywords
               }}</span>"相关的结果 ></p>
               <div class="panel" v-for="order in searchList['order']">
                 <div class="title">
@@ -65,7 +65,7 @@
                   </n-icon>
                   <span>{{ orderDictionary[order] }}</span>
                 </div>
-                <div class="panel-item" v-for="item in searchList[order]" @click="toSearchTable">
+                <div class="panel-item" v-for="item in searchList[order]">
                   <span v-html="brightenKeyword(item['name'])"></span>
                   <span v-if="item['artist']"> - <a v-html="brightenKeyword(item['artist']['name'])"></a></span>
                   <span v-if="item['artists']"> -
@@ -144,6 +144,7 @@ const orderDictionary = ref({
 const songSearchTimer = ref(0)
 
 onMounted(() => {
+  router.push('/home/song-table')
   fetchHotDetail()
 })
 
@@ -181,7 +182,6 @@ const fetchHotDetail = (): void => {
 }
 
 const handelSearchBlur = (): void => {
-  menuSelectedIndex.value = 2
   songSearchTimer.value = new Date().getTime()
   setTimeout(() => {
     showSearchModal.value = false
@@ -224,6 +224,7 @@ const toSingerTable = (): void => {
 }
 
 const toSearchTable = (): void => {
+  // menuSelectedIndex.value = 2
   router.push({
     path: '/home/search-table',
     query: {
