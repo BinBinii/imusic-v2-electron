@@ -13,11 +13,21 @@
           </div>
         </div>
         <div class="menu-btn-box menu-btn-box-screen-one">
-          <div class="menu-btn-item" :class="menuSelectedIndex == 0 ? 'menu-btn-item-selected' : ''"
-            @click="menuSelectedIndex = 0">播放</div>
+          <div class="menu-btn-item" :class="menuSelectedIndex == 0 ? 'menu-btn-item-selected' : ''" @click="toSongTable">
+            播放</div>
           <div class="menu-btn-item" :class="menuSelectedIndex == 1 ? 'menu-btn-item-selected' : ''"
-            @click="menuSelectedIndex = 1">歌手</div>
-          <div class="switch-theme" @click="switchTheme">切换主题</div>
+            @click="toSingerTable">歌手</div>
+          <div class="switch-theme" @click="switchTheme">
+            <div :class="currentTheme">
+              <div class="moon-box">
+                <div class="moon"></div>
+              </div>
+              <div class="sun-box">
+                <div class="sun"></div>
+              </div>
+              <div class="sea"></div>
+            </div>
+          </div>
           <div class="menu-search-item">
             <n-input v-model:value="searchForm.keywords" @focus="showSearchModal = true" @blur="handelSearchBlur()" round
               size="small" placeholder="搜索"></n-input>
@@ -29,9 +39,7 @@
           <p class="online-title">当前在线：</p>
         </div>
         <div class="song-box">
-          <SongTable v-if="menuSelectedIndex == 0"></SongTable>
-          <SingerTable v-if="menuSelectedIndex == 1"></SingerTable>
-          <SearchTable v-if="menuSelectedIndex == 2" :keywords="searchForm.keywords" :key="songSearchTimer"></SearchTable>
+          <router-view />
           <div class="search-box" v-if="showSearchModal">
             <div class="hot-box" v-if="searchForm.keywords.length == 0">
               <p class="hot-title">热搜榜</p>
@@ -47,7 +55,7 @@
             <div class="search-content" v-else>
               <p class="more">搜"<span class="span-height-light">{{ searchForm.keywords
               }}</span>"相关的结果 ></p>
-              <div class="panel" v-for="order in searchList.order">
+              <div class="panel" v-for="order in searchList['order']">
                 <div class="title">
                   <n-icon size="18" style="position: relative;top: 4px;margin-left: 10px;margin-right: 5px;">
                     <QueueMusicRound v-if="order == 'songs'" />
@@ -57,7 +65,7 @@
                   </n-icon>
                   <span>{{ orderDictionary[order] }}</span>
                 </div>
-                <div class="panel-item" v-for="item in searchList[order]" @click="menuSelectedIndex = 2">
+                <div class="panel-item" v-for="item in searchList[order]" @click="toSearchTable">
                   <span v-html="brightenKeyword(item['name'])"></span>
                   <span v-if="item['artist']"> - <a v-html="brightenKeyword(item['artist']['name'])"></a></span>
                   <span v-if="item['artists']"> -
@@ -104,13 +112,14 @@
 import { onMounted, ref, watch } from 'vue';
 import { darkTheme, NConfigProvider, NInput, NIcon } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
-import { ChevronBackOutline, ChevronForwardOutline, PauseCircle, CaretForwardCircle, PlaySkipBack, PlaySkipForward, Shuffle, VolumeLow, VolumeMedium, VolumeOff } from '@vicons/ionicons5'
+// PauseCircle, VolumeMedium, VolumeOff
+import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
-import SongTable from './comp/SongTable.vue'
-import SingerTable from './comp/SingerTable.vue'
-import SearchTable from './comp/SearchTable.vue';
 import { getHotDetail, searchSuggest } from '../../api/netease'
 import { debounce } from 'lodash';
+import { useRouter } from "vue-router";
+
+const router = useRouter()
 
 // 主题
 const theme = ref<GlobalTheme | null>(null)
@@ -204,6 +213,25 @@ const brightenKeyword = (val): any => {
   return val
 }
 
+const toSongTable = (): void => {
+  menuSelectedIndex.value = 0;
+  router.push('/home/song-table')
+}
+
+const toSingerTable = (): void => {
+  menuSelectedIndex.value = 1;
+  router.push('/home/singer-table')
+}
+
+const toSearchTable = (): void => {
+  router.push({
+    path: '/home/search-table',
+    query: {
+      keywords: searchForm.value.keywords
+    }
+  })
+}
+
 </script>
 <style scoped lang="less">
 .menu-box {
@@ -259,9 +287,86 @@ const brightenKeyword = (val): any => {
   .switch-theme {
     float: right;
     width: 100px;
-    height: 100%;
-    text-align: center;
-    line-height: 60px;
+    height: 60px;
+    position: relative;
+
+    .sun {
+      margin: 0;
+      padding: 0;
+      /* 绝对定位 水平垂直居中 */
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: orange;
+      border-radius: 50%;
+    }
+
+    .moon {
+      margin: 0;
+      padding: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      /* 计算得出月亮的位置 */
+      transform: translate(calc(-50% + -10px), calc(-50% + -14px));
+      width: 40px;
+      height: 40px;
+      /* 通过阴影绘制月亮 */
+      box-shadow: 10px 12px 0 rgb(242, 255, 0);
+      border-radius: 50%;
+    }
+
+    .sea {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 35%;
+      /* 背景模糊制造大海的感觉 */
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .sun,
+    .moon,
+    .sun-box,
+    .moon-box {
+      /* 添加动画过渡 */
+      transition: all .5s ease-in-out;
+    }
+
+    .sun-box,
+    .moon-box {
+      /* 相对定位 */
+      position: relative;
+      /* 溢出隐藏 */
+      overflow: hidden;
+    }
+
+    /* 白天 */
+    .light {
+      .sun-box {
+        height: 60px;
+      }
+
+      .moon-box {
+        height: 0;
+      }
+    }
+
+    /* 夜晚 */
+    .dark {
+      .sun-box {
+        height: 0px;
+      }
+
+      .moon-box {
+        height: 60px;
+      }
+    }
   }
 }
 

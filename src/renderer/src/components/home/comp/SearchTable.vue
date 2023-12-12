@@ -73,8 +73,9 @@ import { ref, onMounted } from 'vue';
 import { NPagination, NTabs, NTabPane } from 'naive-ui';
 import { searchSong } from '../../../api/netease'
 import { indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils/index'
+import { useRoute } from "vue-router";
 
-const props = defineProps(['keywords']);
+const route = useRoute()
 
 const searchSongParams = ref({
   keywords: '', // 搜索关键词
@@ -83,9 +84,9 @@ const searchSongParams = ref({
   type: 1       // 搜索类型；默认为 1 即单曲 , 取值意义 : 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频, 1018:综合, 2000:声音
 })
 const dataCount = ref(0)
-const songs = ref([])
-const artists = ref([])
-const albums = ref([])
+const songs = ref([] as any[])
+const artists = ref([] as any[])
+const albums = ref([] as any[])
 
 const pageForm = ref({
   page: 1,
@@ -97,12 +98,12 @@ const singerRef = ref({} as Element)
 const albumRef = ref({} as Element)
 
 onMounted(() => {
+  searchSongParams.value.keywords = route.query.keywords as string
   fetchSong()
 })
 // 获取歌曲搜索
 const fetchSong = (): void => {
   let type = searchSongParams.value.type
-  searchSongParams.value.keywords = props.keywords
   searchSongParams.value.offset = (pageForm.value.page - 1) * searchSongParams.value.limit
   searchSong(searchSongParams.value).then(res => {
     if (type === 1) { // 单曲
