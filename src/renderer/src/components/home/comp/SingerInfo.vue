@@ -92,13 +92,14 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { getArtists, getArtistAlbum, getAlbum } from '../../../api/netease';
 import { NTabs, NTabPane, NIcon } from 'naive-ui';
 import { Download } from '@vicons/tabler'
 import { indexFilter, millisecondsToMinutesAndSeconds, timestampToDate } from '../../../utils/index'
+import { useRoute } from "vue-router";
 
-const props = defineProps(['singerId']);
+const route = useRoute()
 
 // 歌手信息
 const artistInfo = ref({} as any)
@@ -110,7 +111,7 @@ const hotSongs = ref({
 // 专辑信息
 const albumList = ref([] as any[])
 const albumParams = ref({
-  id: props.singerId,
+  id: 0,
   limit: 15,
   offset: 0
 })
@@ -121,7 +122,14 @@ const isLoading = ref(false);
 
 
 onMounted(() => {
-  fetchArtists(props.singerId)
+  albumParams.value.id = Number(route.query.id as string)
+  fetchArtists(albumParams.value.id)
+  fetchArtistAlbum()
+})
+
+watch(route, (routeNewVal, _) => {
+  albumParams.value.id = Number(routeNewVal.query.id as string)
+  fetchArtists(albumParams.value.id)
   fetchArtistAlbum()
 })
 

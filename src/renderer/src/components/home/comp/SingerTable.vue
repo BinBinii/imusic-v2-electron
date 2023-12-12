@@ -1,41 +1,36 @@
 <template>
   <div class="singer-table">
-    <template v-if="!isShowInfo">
-      <div class="singer-area-box">
-        <div class="title">语种：</div>
-        <div class="item" v-for="item in areaSelectList" @click="selectArea(item.value)">
-          <span :class="item.value == artistRequest.area ? 'selectedItem' : ''">{{ item.label }}</span>
+    <div class="singer-area-box">
+      <div class="title">语种：</div>
+      <div class="item" v-for="item in areaSelectList" @click="selectArea(item.value)">
+        <span :class="item.value == artistRequest.area ? 'selectedItem' : ''">{{ item.label }}</span>
+      </div>
+    </div>
+    <div class="singer-type-box">
+      <div class="title">分类：</div>
+      <div class="item" v-for="item in typeSelectList" @click="selectType(item.value)">
+        <span :class="item.value == artistRequest.type ? 'selectedItem' : ''">{{ item.label }}</span>
+      </div>
+    </div>
+    <div class="singer-screen-box">
+      <div class="title">筛选：</div>
+      <div style="float: right;width: calc(100% - 42px);">
+        <div class="item" v-for="item in screenSelectList" @click="selectScreen(item.value)">
+          <span :class="item.value == artistRequest.initial ? 'selectedItem' : ''">{{ item.label }}</span>
         </div>
       </div>
-      <div class="singer-type-box">
-        <div class="title">分类：</div>
-        <div class="item" v-for="item in typeSelectList" @click="selectType(item.value)">
-          <span :class="item.value == artistRequest.type ? 'selectedItem' : ''">{{ item.label }}</span>
-        </div>
-      </div>
-      <div class="singer-screen-box">
-        <div class="title">筛选：</div>
-        <div style="float: right;width: calc(100% - 42px);">
-          <div class="item" v-for="item in screenSelectList" @click="selectScreen(item.value)">
-            <span :class="item.value == artistRequest.initial ? 'selectedItem' : ''">{{ item.label }}</span>
+    </div>
+    <div class="singer-box" ref="singerRef" @scroll="handleScroll">
+      <n-grid :x-gap="24" :y-gap="24" cols="3 550:4 700:5">
+        <n-grid-item v-for="item in artists">
+          <div class="singer-item" @click="showSingerInfo(item.id)">
+            <img class="pic" :src="item.img1v1Url" />
+            <div class="name">{{ item.name }}</div>
           </div>
-        </div>
-      </div>
-      <div class="singer-box" ref="singerRef" @scroll="handleScroll">
-        <n-grid :x-gap="24" :y-gap="24" cols="3 550:4 700:5">
-          <n-grid-item v-for="item in artists">
-            <div class="singer-item" @click="showSingerInfo(item.id)">
-              <img class="pic" :src="item.img1v1Url" />
-              <div class="name">{{ item.name }}</div>
-            </div>
-          </n-grid-item>
-        </n-grid>
-        <div class="loading" v-if="isLoading">加载中...</div>
-      </div>
-    </template>
-    <template v-else>
-      <singer-info :singer-id="isShowSingerId"></singer-info>
-    </template>
+        </n-grid-item>
+      </n-grid>
+      <div class="loading" v-if="isLoading">加载中...</div>
+    </div>
   </div>
 </template>
 
@@ -43,7 +38,9 @@
 import { ref, onMounted } from 'vue';
 import { NGrid, NGridItem } from 'naive-ui';
 import { getArtistList } from '../../../api/netease';
-import SingerInfo from './SingerInfo.vue';
+import { useRouter } from "vue-router";
+
+const router = useRouter()
 
 // 歌手过滤项
 const areaSelectList = ref([
@@ -119,9 +116,6 @@ const artistRequest = ref({
 })
 const singerRef = ref({} as Element)
 const isLoading = ref(false);
-
-const isShowInfo = ref(false)
-const isShowSingerId = ref(-1)
 
 onMounted(() => {
   fetchArtistList()
@@ -202,8 +196,12 @@ const loadMore = async () => {
  * @param id 
  */
 const showSingerInfo = (id: number): void => {
-  isShowSingerId.value = id
-  isShowInfo.value = true
+  router.push({
+    path: '/home/singer-info',
+    query: {
+      id: id
+    }
+  })
 }
 
 </script>

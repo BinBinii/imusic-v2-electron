@@ -2,6 +2,10 @@ export default {
   path: '/home',
   component: () => import('../../components/home/Home.vue'),
   children: [{
+    path: 'album-info',
+    name: 'albumInfo',
+    component: () => import('../../components/home/comp/albumInfo.vue'),
+  }, {
     path: 'search-table',
     name: 'searchTable',
     component: () => import('../../components/home/comp/SearchTable.vue'),

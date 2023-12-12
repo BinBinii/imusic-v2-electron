@@ -13,6 +13,7 @@
             <div ref="songRef" class="song-box">
               <div class="song-item-title">
                 <span class="number">&nbsp;</span>
+                <span class="choose">&nbsp;</span>
                 <span class="title">音乐标题</span>
                 <span class="singer">歌手</span>
                 <span class="album">专辑</span>
@@ -20,6 +21,11 @@
               </div>
               <div class="song-item" v-for="(song, index) in songs">
                 <span class="number">{{ indexFilter(index + searchSongParams.offset) }}</span>
+                <span class="choose">
+                  <n-icon class="icon" size="15">
+                    <Download />
+                  </n-icon>
+                </span>
                 <span class="title">{{ song['name'] }}</span>
                 <span class="singer" :title="singerSummary(song['ar'])">{{ singerSummary(song['ar']) }}</span>
                 <span class="album" :title="song['al']['name']">{{ song['al']['name'] }}</span>
@@ -68,8 +74,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { NPagination, NTabs, NTabPane } from 'naive-ui';
+import { NPagination, NTabs, NTabPane, NIcon } from 'naive-ui';
 import { searchSong } from '../../../api/netease'
+import { Download } from '@vicons/tabler'
 import { indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils/index'
 import { useRoute } from "vue-router";
 
@@ -220,10 +227,16 @@ const handelUpdateTabs = (value: string): void => {
         font-size: 12px;
       }
 
+      .choose {
+        display: block;
+        float: left;
+        width: 30px;
+      }
+
       .title {
         display: block;
         float: left;
-        width: calc(100% - 50px - 150px - 250px - 70px);
+        width: calc(100% - 50px - 30px - 150px - 250px - 70px);
         color: var(--theme-color);
         font-size: 12px;
       }
@@ -272,10 +285,21 @@ const handelUpdateTabs = (value: string): void => {
         font-size: 12px;
       }
 
+      .choose {
+        display: block;
+        float: left;
+        width: 30px;
+
+        .icon {
+          position: relative;
+          top: 2px;
+        }
+      }
+
       .title {
         display: block;
         float: left;
-        width: calc(100% - 50px - 150px - 250px - 70px);
+        width: calc(100% - 50px - 30px - 150px - 250px - 70px);
         color: var(--theme-color);
         font-size: 12px;
         white-space: nowrap;

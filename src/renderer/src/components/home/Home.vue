@@ -65,7 +65,7 @@
                   </n-icon>
                   <span>{{ orderDictionary[order] }}</span>
                 </div>
-                <div class="panel-item" v-for="item in searchList[order]">
+                <div class="panel-item" v-for="item in searchList[order]" @click="toSearchDetail(order, item['id'])">
                   <span v-html="brightenKeyword(item['name'])"></span>
                   <span v-if="item['artist']"> - <a v-html="brightenKeyword(item['artist']['name'])"></a></span>
                   <span v-if="item['artists']"> -
@@ -213,24 +213,65 @@ const brightenKeyword = (val): any => {
   return val
 }
 
+/**
+ * 跳转歌曲页
+ */
 const toSongTable = (): void => {
   menuSelectedIndex.value = 0;
   router.push('/home/song-table')
 }
 
+/**
+ * 跳转歌手页
+ */
 const toSingerTable = (): void => {
   menuSelectedIndex.value = 1;
   router.push('/home/singer-table')
 }
 
+/**
+ * 跳转搜索页
+ */
 const toSearchTable = (): void => {
-  // menuSelectedIndex.value = 2
   router.push({
     path: '/home/search-table',
     query: {
       keywords: searchForm.value.keywords
     }
   })
+}
+
+/**
+ * 跳转搜索详情
+ * @param order songs:单曲 playlists:歌单 albums:专辑 artists:歌手
+ * @param id 
+ */
+const toSearchDetail = (order: string, id: number): void => {
+  menuSelectedIndex.value = 2;
+  switch (order) {
+    case 'songs':
+      break;
+    case 'playlists':
+
+      break;
+    case 'albums':
+      router.push({
+        path: '/home/album-info',
+        query: {
+          id: id
+        }
+      })
+      break;
+    case 'artists':
+      router.push({
+        path: '/home/singer-info',
+        query: {
+          id: id
+        }
+      })
+      break;
+    default: break;
+  }
 }
 
 </script>
