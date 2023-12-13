@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 export type ChooseSong = {
-  songId: string;
+  songId: number;
   from: string;
 }
 
@@ -9,13 +9,13 @@ export type ChooseSongState = {
   songList: ChooseSong[]
 }
 
-export const useUserStore = defineStore('home', {
+export const useChooseSongStore = defineStore('home', {
   state: (): ChooseSongState => ({
     songList: []
   }),
   actions: {
-    syncSongList(songList: ChooseSong[]) {
-      this.songList = songList
+    addSong(chooseSong: ChooseSong) {
+      this.songList.push(chooseSong)
     }
   },
 })

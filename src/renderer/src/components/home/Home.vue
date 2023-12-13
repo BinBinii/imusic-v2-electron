@@ -154,8 +154,7 @@ watch(searchForm, (newVal, _) => {
   }
 }, {
   deep: true,
-}
-);
+});
 
 /**
  * 切换主题
@@ -233,6 +232,7 @@ const toSingerTable = (): void => {
  * 跳转搜索页
  */
 const toSearchTable = (): void => {
+  menuSelectedIndex.value = 2;
   router.push({
     path: '/home/search-table',
     query: {
@@ -252,7 +252,12 @@ const toSearchDetail = (order: string, id: number): void => {
     case 'songs':
       break;
     case 'playlists':
-
+      router.push({
+        path: '/home/play-list',
+        query: {
+          id: id
+        }
+      })
       break;
     case 'albums':
       router.push({

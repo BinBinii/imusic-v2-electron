@@ -19,7 +19,7 @@
                 <span class="album">专辑</span>
                 <span class="duration">时长</span>
               </div>
-              <div class="song-item" v-for="(song, index) in songs">
+              <div class="song-item" v-for="(song, index) in songs" @dblclick="handelChooseSong(song['id'])">
                 <span class="number">{{ indexFilter(index + searchSongParams.offset) }}</span>
                 <span class="choose">
                   <n-icon class="icon" size="15">
@@ -59,16 +59,13 @@
                   }})</span>
                 </div>
               </div>
-              <n-pagination style="margin-top: 20px;position: absolute;
-            left: 50%;
-            transform: translate(-50%, 0);" v-model:page="pageForm.page" :page-count="pageForm.pageCount"
-                :on-update:page="handelUpdatePage" />
+              <n-pagination style="margin-top: 20px;position: absolute;left: 50%;transform: translate(-50%, 0);"
+                v-model:page="pageForm.page" :page-count="pageForm.pageCount" :on-update:page="handelUpdatePage" />
             </div>
           </n-tab-pane>
         </n-tabs>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -79,8 +76,10 @@ import { searchSong } from '../../../api/netease'
 import { Download } from '@vicons/tabler'
 import { indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils/index'
 import { useRoute } from "vue-router";
+import { useChooseSongStore, ChooseSong } from '../../../store/modules/chooseSong'
 
 const route = useRoute()
+const chooseSongStore = useChooseSongStore()
 
 const searchSongParams = ref({
   keywords: '', // 搜索关键词
@@ -101,6 +100,8 @@ const pageForm = ref({
 const songRef = ref({} as Element)
 const singerRef = ref({} as Element)
 const albumRef = ref({} as Element)
+
+const chooseSongObj = ref({} as ChooseSong)
 
 onMounted(() => {
   searchSongParams.value.keywords = route.query.keywords as string
@@ -174,7 +175,12 @@ const handelUpdateTabs = (value: string): void => {
   }
   fetchSong()
 }
-
+const handelChooseSong = (id: number): void => {
+  chooseSongObj.value.songId = id
+  chooseSongObj.value.from = 'test'
+  chooseSongStore.addSong(chooseSongObj.value)
+  console.log(chooseSongStore.songList)
+}
 </script>
 <style scoped lang="less">
 .search-table {
@@ -344,6 +350,10 @@ const handelUpdateTabs = (value: string): void => {
 
     .song-item:hover {
       background-color: var(--theme-table-hover);
+    }
+
+    .song-item:hover .choose .icon {
+      color: var(--theme-center-color);
     }
   }
 

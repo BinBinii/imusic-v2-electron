@@ -1,7 +1,7 @@
 <template>
   <div class="album-info">
     <div class="album-info-box">
-      <div class="pic"></div>
+      <img class="pic" :src="album['picUrl']" />
       <div class="info">
         <p class="name">
           <span>专辑</span>
@@ -42,7 +42,9 @@
           </div>
         </n-tab-pane>
         <n-tab-pane name="comment" tab="评论">
-          <div class="comment-box"></div>
+          <div class="comment-box">
+            当前功能尚在开发中...
+          </div>
         </n-tab-pane>
         <n-tab-pane name="desc" tab="专辑详情">
           <div class="desc-box">
@@ -302,6 +304,10 @@ const singerSummary = (singers: any[]): string => {
       .song-item:hover {
         background-color: var(--theme-table-hover);
       }
+
+      .song-item:hover .choose .icon {
+        color: var(--theme-center-color);
+      }
     }
   }
 
@@ -309,7 +315,6 @@ const singerSummary = (singers: any[]): string => {
 
   .desc-box {
     .title {
-      // font-size: 16px;
       font-weight: 500;
       color: var(--theme-color);
       margin-top: 5px;

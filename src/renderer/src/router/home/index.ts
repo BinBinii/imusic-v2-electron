@@ -4,7 +4,11 @@ export default {
   children: [{
     path: 'album-info',
     name: 'albumInfo',
-    component: () => import('../../components/home/comp/albumInfo.vue'),
+    component: () => import('../../components/home/comp/AlbumInfo.vue'),
+  }, {
+    path: 'play-list',
+    name: 'playList',
+    component: () => import('../../components/home/comp/PlayListInfo.vue'),
   }, {
     path: 'search-table',
     name: 'searchTable',

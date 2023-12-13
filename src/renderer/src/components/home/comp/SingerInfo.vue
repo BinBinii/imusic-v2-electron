@@ -85,7 +85,10 @@
 
         </n-tab-pane>
         <n-tab-pane name="detail" tab="歌手详情">
-
+          <div class="detail-box">
+            <p class="title">{{ artistInfo['name'] }}简介</p>
+            <p class="desc">{{ artistInfo['briefDesc'] }}</p>
+          </div>
         </n-tab-pane>
       </n-tabs>
     </div>
@@ -361,6 +364,19 @@ const loadMore = async () => {
           color: var(--theme-color);
         }
       }
+    }
+  }
+  .detail-box {
+    .title {
+      font-weight: 500;
+      color: var(--theme-color);
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+
+    .desc {
+      font-size: 13px;
+      color: var(--theme-secondary);
     }
   }
 
