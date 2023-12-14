@@ -37,6 +37,8 @@
       <div class="content-box">
         <div class="person-box">
           <p class="online-title">当前在线：</p>
+          <p @click="loginShowModal = true">登录</p>
+          {{ userInfo }}
         </div>
         <div class="song-box">
           <router-view />
@@ -105,21 +107,44 @@
           </n-icon>
         </div>
       </div>
+      <n-modal v-model:show="loginShowModal" preset="dialog" role="dialog" aria-modal="true" title="Dialog">
+        <template #header>
+          <div>登录</div>
+        </template>
+        <div>
+          <n-form ref="formRef" :model="loginModel" :rules="loginRules" label-placement="left" label-width="auto">
+            <n-form-item label="账号" path="account">
+              <n-input v-model:value="loginModel.account" placeholder="账号" />
+            </n-form-item>
+            <n-form-item label="密码" path="password">
+              <n-input v-model:value="loginModel.password" type="password" placeholder="密码" />
+            </n-form-item>
+          </n-form>
+        </div>
+        <template #action>
+          <n-button type="primary" @click="handleLogin">确定</n-button>
+        </template>
+      </n-modal>
     </n-config-provider>
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { darkTheme, NConfigProvider, NInput, NIcon } from 'naive-ui';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { darkTheme, NConfigProvider, NInput, NIcon, NModal, NForm, NFormItem, NButton } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
 // PauseCircle, VolumeMedium, VolumeOff
 import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
 import { getHotDetail, searchSuggest } from '../../api/netease'
+import { useUserStore } from '../../store/modules/user'
 import { debounce } from 'lodash';
 import { useRouter } from "vue-router";
 
+// 路由
 const router = useRouter()
+
+// store
+const userStore = useUserStore()
 
 // 主题
 const theme = ref<GlobalTheme | null>(null)
@@ -143,11 +168,48 @@ const orderDictionary = ref({
 })
 const songSearchTimer = ref(0)
 
+// 登录
+const userInfo = ref({})
+const loginShowModal = ref(false)
+const loginModel = ref({
+  account: '',
+  password: ''
+})
+const loginRules = ref({
+  account: {
+    required: true,
+    message: '请输入账号',
+    trigger: ['input']
+  },
+  password: {
+    required: true,
+    message: '请输入密码',
+    trigger: ['input']
+  }
+})
+
+// 实时通讯
+const webSocket = ref({} as WebSocket)
+
 onMounted(() => {
   router.push('/home/song-table')
   fetchHotDetail()
+  userStore.getInfo().then(res => {
+    userInfo.value = res
+    initWebsocket()
+  }).catch(err => {
+    console.log(err)
+    loginShowModal.value = true
+  })
 })
 
+onBeforeUnmount(() => {
+  webSocket.value.close()
+})
+
+/**
+ * 监听搜索框输入值
+ */
 watch(searchForm, (newVal, _) => {
   if (newVal.keywords && newVal.keywords !== '' && newVal.keywords !== null) {
     handleSearch(newVal)
@@ -180,6 +242,9 @@ const fetchHotDetail = (): void => {
   })
 }
 
+/**
+ * 搜索框取消焦点
+ */
 const handelSearchBlur = (): void => {
   songSearchTimer.value = new Date().getTime()
   setTimeout(() => {
@@ -279,6 +344,58 @@ const toSearchDetail = (order: string, id: number): void => {
   }
 }
 
+/**
+ * 登录
+ */
+const handleLogin = (): void => {
+  userStore.login(loginModel.value).then(res => {
+    if (res) {
+      userStore.getInfo()
+      userInfo.value = userStore.getUserInfo
+    }
+  })
+}
+
+/**
+ * 连接Netty服务器
+ */
+const initWebsocket = (): void => {
+  webSocket.value = new WebSocket('ws://127.0.0.1:8000/netty.io?data=' + userStore.getToken);
+  webSocket.value.onmessage = (event) => {
+    let msg = JSON.parse(event.data);
+    switch (msg.cmd) {
+      case "000":
+        setInterval(() => { webSocket.value.send("heartbeat") }, 60 * 1000);
+        break;
+      case "001":
+        console.log("收到新的消息请查看")
+        break;
+    }
+  }
+  webSocket.value.onclose = () => {
+    console.log("连接关闭")
+    // setTimeout(() => {
+    //     console.log("正在重连...")
+    //     initWebsocket();
+    // }, 3 * 1000);
+  }
+  webSocket.value.onerror = () => {
+    console.log("连接错误")
+    setTimeout(() => {
+      console.log("正在重连...")
+      initWebsocket();
+    }, 3 * 1000);
+  }
+}
+
+/**
+ * 发送消息
+ * @param user 接受人ID
+ * @param msg  消息文本
+ */
+// const sendMsg = (user: string, msg: string): void => {
+//   webSocket.value.send(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
+// }
 </script>
 <style scoped lang="less">
 .menu-box {

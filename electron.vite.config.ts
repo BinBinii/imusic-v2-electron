@@ -21,7 +21,12 @@ export default defineConfig({
         '/netease': {
           target: 'http://127.0.0.1:3000',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/netease/, '') // 不可以省略rewrite
+          rewrite: (path) => path.replace(/^\/netease/, '')
+        },
+        '/music': {
+          target: 'http://127.0.0.1:9000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/music/, '')
         }
       }
     }
