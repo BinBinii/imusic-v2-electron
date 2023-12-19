@@ -12,6 +12,7 @@ export interface IUserState {
   token: string;
   refreshToken: string;
   info: UserInfoType;
+  onlineUsers: string[]
 }
 
 export const useUserStore = defineStore({
@@ -20,6 +21,7 @@ export const useUserStore = defineStore({
     token: storage.get(ACCESS_TOKEN, ''),
     refreshToken: storage.get(REFRESH_TOKEN, ''),
     info: storage.get(CURRENT_USER, {}),
+    onlineUsers: [],
   }),
   getters: {
     getToken(): string {
@@ -30,6 +32,9 @@ export const useUserStore = defineStore({
     },
     getUserInfo(): UserInfoType {
       return this.info;
+    },
+    getOnlineUsers(): string[] {
+      return this.onlineUsers
     }
   },
   actions: {
@@ -42,9 +47,12 @@ export const useUserStore = defineStore({
     setUserInfo(info: UserInfoType) {
       this.info = info;
     },
+    setOnlineUsers(onlineUsers: string[]) {
+      this.onlineUsers = onlineUsers
+    },
     // 登录
     async login(params: any) {
-      const response = await loginApi(params)
+      const response = (await loginApi(params)).data.result
       const ex = 1 * 24 * 60 * 60;
       const refreshEx = 30 * 24 * 60 * 60
       storage.set(ACCESS_TOKEN, response['accessToken'], ex)
@@ -57,9 +65,9 @@ export const useUserStore = defineStore({
 
     // 获取用户信息
     async getInfo() {
-      const response = await userInfoApi({
+      const response = (await userInfoApi({
         token: storage.get(ACCESS_TOKEN)
-      })
+      })).data.result
       this.setUserInfo({
         nickname: response['nickname'],
         account: response['account']

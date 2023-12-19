@@ -19,7 +19,7 @@
                 <span class="album">专辑</span>
                 <span class="duration">时长</span>
               </div>
-              <div class="song-item" v-for="(song, index) in songs" @dblclick="handelChooseSong(song['id'])">
+              <div class="song-item" v-for="(song, index) in songs" @dblclick="handelChooseSong(song)">
                 <span class="number">{{ indexFilter(index + searchSongParams.offset) }}</span>
                 <span class="choose">
                   <n-icon class="icon" size="15">
@@ -73,13 +73,29 @@
 import { ref, onMounted } from 'vue';
 import { NPagination, NTabs, NTabPane, NIcon } from 'naive-ui';
 import { searchSong } from '../../../api/netease'
+import { addSong as addSongApi } from '../../../api/song'
 import { Download } from '@vicons/tabler'
 import { indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils/index'
 import { useRoute } from "vue-router";
-import { useChooseSongStore, ChooseSong } from '../../../store/modules/chooseSong'
+import { useUserStore } from '../../../store/modules/user'
+import { useSocketStore } from '../../../store/modules/webSocket'
 
 const route = useRoute()
-const chooseSongStore = useChooseSongStore()
+
+const userStore = useUserStore()
+const socketStore = useSocketStore()
+
+interface ChooseSongObj {
+  // songId: number;
+  // name: string;
+  // artistId: number;
+  // artistName: string;
+  // albumId: number;
+  // albumName: string;
+  // dt: number;
+  song: any;
+  from: string;
+}
 
 const searchSongParams = ref({
   keywords: '', // 搜索关键词
@@ -101,7 +117,7 @@ const songRef = ref({} as Element)
 const singerRef = ref({} as Element)
 const albumRef = ref({} as Element)
 
-const chooseSongObj = ref({} as ChooseSong)
+const chooseSongObj = ref({} as ChooseSongObj)
 
 onMounted(() => {
   searchSongParams.value.keywords = route.query.keywords as string
@@ -175,11 +191,21 @@ const handelUpdateTabs = (value: string): void => {
   }
   fetchSong()
 }
-const handelChooseSong = (id: number): void => {
-  chooseSongObj.value.songId = id
-  chooseSongObj.value.from = 'test'
-  chooseSongStore.addSong(chooseSongObj.value)
-  console.log(chooseSongStore.songList)
+const handelChooseSong = (song: any): void => {
+  chooseSongObj.value = {
+    song: song,
+    from: userStore.getUserInfo.nickname
+  }
+  addSongApi(chooseSongObj.value)
+  sendMsg('all', 'updateSong')
+}
+/**
+ * 发送消息
+ * @param user 接受人ID
+ * @param msg  消息文本
+ */
+ const sendMsg = (user: string, msg: string): void => {
+  socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
 }
 </script>
 <style scoped lang="less">

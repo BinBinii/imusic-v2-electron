@@ -38,7 +38,7 @@
         <div class="person-box">
           <p class="online-title">当前在线：</p>
           <p @click="loginShowModal = true">登录</p>
-          {{ userInfo }}
+          <p v-for="item in userStore.getOnlineUsers">{{ item }}</p>
         </div>
         <div class="song-box">
           <router-view />
@@ -83,8 +83,9 @@
         <div class="music-info">
           <div class="music-cover"></div>
           <div class="music-content">
-            <p><span class="music-name">沉默是金</span><span class="music-singer"> - 张国荣</span></p>
-            <p class="duration">03:45 / 04:32</p>
+            <p><span class="music-name">{{ currentSongInfo['name'] }}</span><span class="music-singer"> - {{
+              singerSummary(currentSongInfo['ar']) }}</span></p>
+            <p class="duration">03:45 / {{ millisecondsToMinutesAndSeconds(currentSongInfo['dt']) }}</p>
           </div>
         </div>
         <div class="option-box">
@@ -137,14 +138,19 @@ import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkip
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
 import { getHotDetail, searchSuggest } from '../../api/netease'
 import { useUserStore } from '../../store/modules/user'
+import { useSocketStore } from '../../store/modules/webSocket'
+import { useChooseSongStore } from '../../store/modules/chooseSong'
 import { debounce } from 'lodash';
 import { useRouter } from "vue-router";
+import { millisecondsToMinutesAndSeconds } from '../../utils/index'
 
 // 路由
 const router = useRouter()
 
 // store
 const userStore = useUserStore()
+const socketStore = useSocketStore()
+const chooseSongStore = useChooseSongStore()
 
 // 主题
 const theme = ref<GlobalTheme | null>(null)
@@ -187,9 +193,8 @@ const loginRules = ref({
     trigger: ['input']
   }
 })
-
-// 实时通讯
-const webSocket = ref({} as WebSocket)
+// 歌曲
+const currentSongInfo = ref({} as any)
 
 onMounted(() => {
   router.push('/home/song-table')
@@ -204,7 +209,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  webSocket.value.close()
+  socketStore.disconnect()
 })
 
 /**
@@ -217,6 +222,12 @@ watch(searchForm, (newVal, _) => {
 }, {
   deep: true,
 });
+// watch(chooseSongStore.getSongList, (newVal, _) => {
+//   console.log(newVal)
+// })
+chooseSongStore.$subscribe((_, state) => {
+  currentSongInfo.value = state.songList[0].song
+})
 
 /**
  * 切换主题
@@ -360,41 +371,28 @@ const handleLogin = (): void => {
  * 连接Netty服务器
  */
 const initWebsocket = (): void => {
-  webSocket.value = new WebSocket('ws://127.0.0.1:8000/netty.io?data=' + userStore.getToken);
-  webSocket.value.onmessage = (event) => {
-    let msg = JSON.parse(event.data);
-    switch (msg.cmd) {
-      case "000":
-        setInterval(() => { webSocket.value.send("heartbeat") }, 60 * 1000);
-        break;
-      case "001":
-        console.log("收到新的消息请查看")
-        break;
-    }
-  }
-  webSocket.value.onclose = () => {
-    console.log("连接关闭")
-    // setTimeout(() => {
-    //     console.log("正在重连...")
-    //     initWebsocket();
-    // }, 3 * 1000);
-  }
-  webSocket.value.onerror = () => {
-    console.log("连接错误")
-    setTimeout(() => {
-      console.log("正在重连...")
-      initWebsocket();
-    }, 3 * 1000);
-  }
+  let url = 'ws://127.0.0.1:8000/netty.io?data=' + userStore.getToken
+  socketStore.connect(url)
 }
 
-/**
- * 发送消息
- * @param user 接受人ID
- * @param msg  消息文本
- */
+// 歌手汇总
+const singerSummary = (singers: any[]): string => {
+  let result = ''
+  if (singers) {
+    singers.forEach(item => {
+      result += item['name'] + ' '
+    })
+  }
+  return result
+}
+
+// /**
+//  * 发送消息
+//  * @param user 接受人ID
+//  * @param msg  消息文本
+//  */
 // const sendMsg = (user: string, msg: string): void => {
-//   webSocket.value.send(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
+//   socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
 // }
 </script>
 <style scoped lang="less">

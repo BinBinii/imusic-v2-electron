@@ -26,3 +26,11 @@ export function userInfo(data) {
     params: data
   })
 }
+
+// 获取当前在线用户
+export function getOnlineUser() {
+  return request({
+    url: '/auth/get/online',
+    method: 'get'
+  })
+}
