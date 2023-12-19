@@ -80,22 +80,31 @@
         </div>
       </div>
       <div class="control-box">
-        <div class="music-info">
-          <div class="music-cover"></div>
+        <div class="music-info"
+          v-if="currentSongInfo['id'] && currentSongInfo['id'] !== null && currentSongInfo['id'] !== ''">
+          <img class="music-cover" :src="currentSongInfo['al']['picUrl']" />
           <div class="music-content">
             <p><span class="music-name">{{ currentSongInfo['name'] }}</span><span class="music-singer"> - {{
               singerSummary(currentSongInfo['ar']) }}</span></p>
-            <p class="duration">03:45 / {{ millisecondsToMinutesAndSeconds(currentSongInfo['dt']) }}</p>
+            <p class="duration">{{ currentTime }} / {{ millisecondsToMinutesAndSeconds(currentSongInfo['dt']) }}</p>
+          </div>
+        </div>
+        <div class="music-info" v-else>
+          <div class="music-cover"></div>
+          <div class="music-content">
+            <p><span class="music-name">暂无可播放的音乐</span></p>
+            <p class="duration">00:00 / 00:00</p>
           </div>
         </div>
         <div class="option-box">
           <n-icon style="position: relative; top: -5px; margin-right: 10px; cursor: pointer;" size="20">
             <PlaySkipBack />
           </n-icon>
-          <n-icon style="position: relative; top: 5px; cursor: pointer;" size="40">
-            <CaretForwardCircle />
+          <n-icon style="position: relative; top: 5px; cursor: pointer;" size="40" @click="handleAudioPlay">
+            <CaretForwardCircle v-if="!isPlay" />
+            <PauseCircle v-else />
           </n-icon>
-          <n-icon style="position: relative; top: -5px; margin-left: 10px; cursor: pointer;" size="20">
+          <n-icon style="position: relative; top: -5px; margin-left: 10px; cursor: pointer;" size="20" @click="nextSong">
             <PlaySkipForward />
           </n-icon>
         </div>
@@ -106,6 +115,11 @@
           <n-icon style="margin-right: 20px;position: relative;top: 5px;cursor: pointer;" size="20">
             <VolumeLow />
           </n-icon>
+        </div>
+        <div class="progress-box">
+          <div class="progress-bar">
+            <div class="progress" :style="{ width: progress + '%' }"></div>
+          </div>
         </div>
       </div>
       <n-modal v-model:show="loginShowModal" preset="dialog" role="dialog" aria-modal="true" title="Dialog">
@@ -127,16 +141,18 @@
         </template>
       </n-modal>
     </n-config-provider>
+    <audio ref="audioRef" @timeupdate="updateProgress"></audio>
   </div>
 </template>
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { darkTheme, NConfigProvider, NInput, NIcon, NModal, NForm, NFormItem, NButton } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
-// PauseCircle, VolumeMedium, VolumeOff
-import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
+// VolumeMedium, VolumeOff
+import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PauseCircle, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
-import { getHotDetail, searchSuggest } from '../../api/netease'
+import { getHotDetail, searchSuggest, getSongUrl as getSongUrlApi } from '../../api/netease'
+import { nextSong as nextSongApi } from '../../api/song'
 import { useUserStore } from '../../store/modules/user'
 import { useSocketStore } from '../../store/modules/webSocket'
 import { useChooseSongStore } from '../../store/modules/chooseSong'
@@ -195,6 +211,11 @@ const loginRules = ref({
 })
 // 歌曲
 const currentSongInfo = ref({} as any)
+const currentSongMp3 = ref({} as any)
+const audioRef = ref<HTMLAudioElement>()
+const isPlay = ref(false)
+const progress = ref(0)
+const currentTime = ref('00:00')
 
 onMounted(() => {
   router.push('/home/song-table')
@@ -222,11 +243,19 @@ watch(searchForm, (newVal, _) => {
 }, {
   deep: true,
 });
-// watch(chooseSongStore.getSongList, (newVal, _) => {
-//   console.log(newVal)
-// })
+watch(currentSongInfo, (newVal, _) => {
+  if (newVal) {
+    getSongUrl()
+  }
+})
 chooseSongStore.$subscribe((_, state) => {
-  currentSongInfo.value = state.songList[0].song
+  if (state.songList.length > 0) {
+    currentSongInfo.value = state.songList[0].song
+    isPlay.value = true
+    audioRef.value?.play()
+  } else {
+    currentSongInfo.value = {}
+  }
 })
 
 /**
@@ -386,14 +415,67 @@ const singerSummary = (singers: any[]): string => {
   return result
 }
 
-// /**
-//  * 发送消息
-//  * @param user 接受人ID
-//  * @param msg  消息文本
-//  */
-// const sendMsg = (user: string, msg: string): void => {
-//   socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
-// }
+// 获取歌曲Mp3 url
+const getSongUrl = (): void => {
+  getSongUrlApi({
+    id: currentSongInfo.value['id']
+  }).then(res => {
+    currentSongMp3.value = res.data.data[0]
+    audioRef.value!.src = currentSongMp3.value['url']
+  })
+}
+
+// 播放音乐
+const handleAudioPlay = (): void => {
+  if (!isPlay.value) {
+    audioRef.value?.play()
+    isPlay.value = true
+  } else {
+    audioRef.value?.pause()
+    isPlay.value = false
+  }
+
+}
+
+// 更新进度条
+const updateProgress = (): void => {
+  const audio = audioRef.value!
+  if (audio.currentTime === audio.duration) {
+    nextSong()
+  }
+  progress.value = (audio.currentTime / audio.duration) * 100;
+  formattedCurrentTime()
+}
+
+// 更新时间进度
+const formattedCurrentTime = (): void => {
+  const audio = audioRef.value!
+  const minutes = Math.floor(audio.currentTime / 60);
+  const seconds = Math.floor(audio.currentTime % 60);
+  currentTime.value = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// 下一首
+const nextSong = (): void => {
+  isPlay.value = false
+  audioRef.value?.pause()
+  audioRef.value!.src = ''
+  progress.value = 0
+  currentTime.value = '00:00'
+  nextSongApi()
+  setTimeout(() => {
+    sendMsg('all', 'updateSong')
+  }, 500)
+}
+
+/**
+ * 发送消息
+ * @param user 接受人ID
+ * @param msg  消息文本
+ */
+const sendMsg = (user: string, msg: string): void => {
+  socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
+}
 </script>
 <style scoped lang="less">
 .menu-box {
@@ -675,7 +757,6 @@ const singerSummary = (singers: any[]): string => {
   width: 100%;
   height: 70px;
   background-color: var(--theme-nav-background);
-  border-top: solid 1.5px var(--theme-border);
   position: relative;
 
   .music-info {
@@ -726,6 +807,25 @@ const singerSummary = (singers: any[]): string => {
     float: right;
     height: 70px;
     line-height: 70px;
+  }
+
+  .progress-box {
+    width: 100vw;
+    height: 10px;
+    position: absolute;
+    top: 0;
+
+    .progress-bar {
+      width: 100%;
+      height: 2px;
+      background-color: var(--theme-progress-bar);
+      position: relative;
+    }
+
+    .progress {
+      height: 100%;
+      background-color: var(--theme-center-color);
+    }
   }
 }
 

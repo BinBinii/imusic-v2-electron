@@ -9,6 +9,14 @@ export function addSong(data) {
   });
 }
 
+// 下一首
+export function nextSong() {
+  return request({
+    url: '/song/next',
+    method: 'post'
+  });
+}
+
 // 获取已点歌曲
 export function getChooseSong() {
   return request({

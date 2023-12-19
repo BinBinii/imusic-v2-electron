@@ -197,7 +197,9 @@ const handelChooseSong = (song: any): void => {
     from: userStore.getUserInfo.nickname
   }
   addSongApi(chooseSongObj.value)
-  sendMsg('all', 'updateSong')
+  setTimeout(() => {
+    sendMsg('all', 'updateSong')
+  }, 500)
 }
 /**
  * 发送消息
