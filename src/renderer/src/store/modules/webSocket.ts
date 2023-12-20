@@ -27,12 +27,26 @@ export const useSocketStore = defineStore({
             setInterval(() => { this.sendMessage("heartbeat") }, 30 * 1000);
             getChooseSong().then(res => {
               chooseSongStore.syncSong(res.data.result)
+              setTimeout(() => {
+                chooseSongStore.setIsPlaySong(res.data.result[0])
+              }, 300)
             })
             break;
           case "001":
-            if(msg.data === 'updateSong') {
+            if (msg.data === 'updateSong') {
               getChooseSong().then(res => {
                 chooseSongStore.syncSong(res.data.result)
+                if (res.data.result.length == 1) {
+                  chooseSongStore.setIsPlaySong(res.data.result[0])
+                }
+              })
+            }
+            if (msg.data === 'nextSong') {
+              getChooseSong().then(res => {
+                chooseSongStore.syncSong(res.data.result)
+                setTimeout(() => {
+                  chooseSongStore.setIsPlaySong(res.data.result[0])
+                }, 300)
               })
             }
             break;

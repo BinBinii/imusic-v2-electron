@@ -17,6 +17,14 @@ export function nextSong() {
   });
 }
 
+// 乱序
+export function shuffleSong() {
+  return request({
+    url: '/song/shuffle',
+    method: 'post'
+  })
+}
+
 // 获取已点歌曲
 export function getChooseSong() {
   return request({

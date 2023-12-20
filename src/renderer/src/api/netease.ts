@@ -66,7 +66,7 @@ export function getAlbum(data) {
 // 搜索
 export function searchSong(data) {
   return request({
-    url: '/cloudsearch',
+    url: '/search',
     method: 'get',
     params: data
   });
@@ -76,6 +76,14 @@ export function searchSong(data) {
 export function getSongUrl(data) {
   return request({
     url: '/song/url',
+    method: 'get',
+    params: data
+  });
+}
+
+export function getSongDetail(data) {
+  return request({
+    url: '/song/detail',
     method: 'get',
     params: data
   });

@@ -12,9 +12,9 @@
       <div class="song-item" v-for="(song, index) in chooseSongStore.getSongList">
         <span class="number">{{ indexFilter(index) }}</span>
         <span class="title">{{ song['song']['name'] }}</span>
-        <span class="singer" :title="singerSummary(song['song']['ar'])">{{ singerSummary(song['song']['ar']) }}</span>
-        <span class="album" :title="song['song']['al']['name']">{{ song['song']['al']['name'] }}</span>
-        <span class="duration">{{ millisecondsToMinutesAndSeconds(song['song']['dt']) }}</span>
+        <span class="singer" :title="singerSummary(song['song']['artists'])">{{ singerSummary(song['song']['artists']) }}</span>
+        <span class="album" :title="song['song']['album']['name']">{{ song['song']['album']['name'] }}</span>
+        <span class="duration">{{ millisecondsToMinutesAndSeconds(song['song']['duration']) }}</span>
         <span class="choose">{{ song['from'] }}</span>
       </div>
     </div>

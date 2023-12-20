@@ -67,7 +67,8 @@
                   </n-icon>
                   <span>{{ orderDictionary[order] }}</span>
                 </div>
-                <div class="panel-item" v-for="item in searchList[order]" @click="toSearchDetail(order, item['id'])">
+                <div class="panel-item" v-for="item in searchList[order]"
+                  @click="toSearchDetail(order, item['id'], item)">
                   <span v-html="brightenKeyword(item['name'])"></span>
                   <span v-if="item['artist']"> - <a v-html="brightenKeyword(item['artist']['name'])"></a></span>
                   <span v-if="item['artists']"> -
@@ -109,7 +110,7 @@
           </n-icon>
         </div>
         <div class="volume-box">
-          <n-icon style="margin-right: 10px;position: relative;top: 5px;cursor: pointer;" size="20">
+          <n-icon style="margin-right: 10px;position: relative;top: 5px;cursor: pointer;" size="20" @click="handleShuffleSong">
             <Shuffle />
           </n-icon>
           <n-icon style="margin-right: 20px;position: relative;top: 5px;cursor: pointer;" size="20">
@@ -141,7 +142,7 @@
         </template>
       </n-modal>
     </n-config-provider>
-    <audio ref="audioRef" @timeupdate="updateProgress"></audio>
+    <audio ref="audioRef" :src="currentSongMp3['url']" @timeupdate="updateProgress"></audio>
   </div>
 </template>
 <script setup lang="ts">
@@ -151,8 +152,8 @@ import type { GlobalTheme } from 'naive-ui'
 // VolumeMedium, VolumeOff
 import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PauseCircle, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
-import { getHotDetail, searchSuggest, getSongUrl as getSongUrlApi } from '../../api/netease'
-import { nextSong as nextSongApi } from '../../api/song'
+import { getHotDetail, searchSuggest, getSongUrl as getSongUrlApi, getSongDetail as getSongDetailApi } from '../../api/netease'
+import { nextSong as nextSongApi, addSong as addSongApi, shuffleSong as shuffleSongApi } from '../../api/song'
 import { useUserStore } from '../../store/modules/user'
 import { useSocketStore } from '../../store/modules/webSocket'
 import { useChooseSongStore } from '../../store/modules/chooseSong'
@@ -243,19 +244,34 @@ watch(searchForm, (newVal, _) => {
 }, {
   deep: true,
 });
-watch(currentSongInfo, (newVal, _) => {
-  if (newVal) {
-    getSongUrl()
+// watch(currentSongInfo, (newVal, _) => {
+//   if (newVal) {
+//     getSongUrl()
+//   }
+// })
+chooseSongStore.$subscribe((mutation, state) => {
+  if (mutation.events['key'] === 'isPlaySong') {
+    let song = mutation.events['newValue']['song']
+    getSongDetailApi({
+      ids: song['id']
+    }).then(res => {
+      currentSongInfo.value = res.data.songs[0]
+      getSongUrl()
+    })
   }
-})
-chooseSongStore.$subscribe((_, state) => {
-  if (state.songList.length > 0) {
-    currentSongInfo.value = state.songList[0].song
-    isPlay.value = true
-    audioRef.value?.play()
-  } else {
+  if (state.songList.length == 0) {
     currentSongInfo.value = {}
+    progress.value = 0
+    currentTime.value = '00:00'
   }
+  // if (state.songList.length > 0) {
+  //   isPlay.value = true
+  //   audioRef.value?.play()
+  // } else {
+  //   currentSongInfo.value = {}
+  //   progress.value = 0
+  //   currentTime.value = '00:00'
+  // }
 })
 
 /**
@@ -351,10 +367,11 @@ const toSearchTable = (): void => {
  * @param order songs:单曲 playlists:歌单 albums:专辑 artists:歌手
  * @param id 
  */
-const toSearchDetail = (order: string, id: number): void => {
+const toSearchDetail = (order: string, id: number, item: any): void => {
   menuSelectedIndex.value = 2;
   switch (order) {
     case 'songs':
+      handelChooseSong(item)
       break;
     case 'playlists':
       router.push({
@@ -421,7 +438,9 @@ const getSongUrl = (): void => {
     id: currentSongInfo.value['id']
   }).then(res => {
     currentSongMp3.value = res.data.data[0]
-    audioRef.value!.src = currentSongMp3.value['url']
+    setTimeout(() => {
+      handleAudioPlay()
+    }, 500)
   })
 }
 
@@ -434,7 +453,6 @@ const handleAudioPlay = (): void => {
     audioRef.value?.pause()
     isPlay.value = false
   }
-
 }
 
 // 更新进度条
@@ -464,8 +482,26 @@ const nextSong = (): void => {
   currentTime.value = '00:00'
   nextSongApi()
   setTimeout(() => {
+    sendMsg('all', 'nextSong')
+  }, 500)
+}
+
+// 添加音乐
+const handelChooseSong = (song: any): void => {
+  let chooseSongObj = {
+    song: song,
+    from: userStore.getUserInfo.nickname
+  }
+  addSongApi(chooseSongObj)
+  setTimeout(() => {
     sendMsg('all', 'updateSong')
   }, 500)
+}
+
+const handleShuffleSong = (): void => {
+  shuffleSongApi().then(res => {
+    chooseSongStore.syncSong(res.data.result)
+  })
 }
 
 /**

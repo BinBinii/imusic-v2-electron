@@ -27,9 +27,9 @@
                   </n-icon>
                 </span>
                 <span class="title">{{ song['name'] }}</span>
-                <span class="singer" :title="singerSummary(song['ar'])">{{ singerSummary(song['ar']) }}</span>
-                <span class="album" :title="song['al']['name']">{{ song['al']['name'] }}</span>
-                <span class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</span>
+                <span class="singer" :title="singerSummary(song['artists'])">{{ singerSummary(song['artists']) }}</span>
+                <span class="album" :title="song['album']['name']">{{ song['album']['name'] }}</span>
+                <span class="duration">{{ millisecondsToMinutesAndSeconds(song['duration']) }}</span>
               </div>
               <n-pagination style="margin-top: 20px;position: absolute;
             left: 50%;
@@ -191,6 +191,8 @@ const handelUpdateTabs = (value: string): void => {
   }
   fetchSong()
 }
+
+// 添加音乐
 const handelChooseSong = (song: any): void => {
   chooseSongObj.value = {
     song: song,
