@@ -65,9 +65,7 @@ export const useUserStore = defineStore({
 
     // 获取用户信息
     async getInfo() {
-      const response = (await userInfoApi({
-        token: storage.get(ACCESS_TOKEN)
-      })).data.result
+      const response = (await userInfoApi()).data.result
       this.setUserInfo({
         nickname: response['nickname'],
         account: response['account']

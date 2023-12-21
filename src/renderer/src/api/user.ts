@@ -19,11 +19,10 @@ export function register(data) {
 }
 
 // 获取用户信息
-export function userInfo(data) {
+export function userInfo() {
   return request({
     url: '/auth/userInfo',
-    method: 'get',
-    params: data
+    method: 'get'
   })
 }
 

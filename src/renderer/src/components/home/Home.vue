@@ -12,7 +12,7 @@
             </n-icon>
           </div>
         </div>
-        <div class="menu-btn-box menu-btn-box-screen-one">
+        <div class="menu-btn-box">
           <div class="menu-btn-item" :class="menuSelectedIndex == 0 ? 'menu-btn-item-selected' : ''" @click="toSongTable">
             播放</div>
           <div class="menu-btn-item" :class="menuSelectedIndex == 1 ? 'menu-btn-item-selected' : ''"
@@ -32,12 +32,17 @@
             <n-input v-model:value="searchForm.keywords" @focus="showSearchModal = true" @blur="handelSearchBlur()" round
               size="small" placeholder="搜索"></n-input>
           </div>
+          <div class="userinfo-box">
+            <div class="icon" @click="loginShowModal = true">
+              <span v-if="!isLogin">尚未登录</span>
+              <span v-else>{{ userStore.getUserInfo.nickname }}</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="content-box">
         <div class="person-box">
           <p class="online-title">当前在线：</p>
-          <p @click="loginShowModal = true">登录</p>
           <p v-for="item in userStore.getOnlineUsers">{{ item }}</p>
         </div>
         <div class="song-box">
@@ -110,7 +115,8 @@
           </n-icon>
         </div>
         <div class="volume-box">
-          <n-icon style="margin-right: 10px;position: relative;top: 5px;cursor: pointer;" size="20" @click="handleShuffleSong">
+          <n-icon style="margin-right: 10px;position: relative;top: 5px;cursor: pointer;" size="20"
+            @click="handleShuffleSong">
             <Shuffle />
           </n-icon>
           <n-icon style="margin-right: 20px;position: relative;top: 5px;cursor: pointer;" size="20">
@@ -194,6 +200,7 @@ const songSearchTimer = ref(0)
 // 登录
 const userInfo = ref({})
 const loginShowModal = ref(false)
+const isLogin = ref(true)
 const loginModel = ref({
   account: '',
   password: ''
@@ -223,11 +230,14 @@ onMounted(() => {
   fetchHotDetail()
   userStore.getInfo().then(res => {
     userInfo.value = res
-    initWebsocket()
   }).catch(err => {
     console.log(err)
-    loginShowModal.value = true
+    // loginShowModal.value = true
+    // isLogin.value = false
   })
+  setTimeout(() => {
+    initWebsocket()
+  }, 1000)
 })
 
 onBeforeUnmount(() => {
@@ -264,14 +274,6 @@ chooseSongStore.$subscribe((mutation, state) => {
     progress.value = 0
     currentTime.value = '00:00'
   }
-  // if (state.songList.length > 0) {
-  //   isPlay.value = true
-  //   audioRef.value?.play()
-  // } else {
-  //   currentSongInfo.value = {}
-  //   progress.value = 0
-  //   currentTime.value = '00:00'
-  // }
 })
 
 /**
@@ -498,6 +500,7 @@ const handelChooseSong = (song: any): void => {
   }, 500)
 }
 
+// 歌曲乱序
 const handleShuffleSong = (): void => {
   shuffleSongApi().then(res => {
     chooseSongStore.syncSong(res.data.result)
@@ -561,6 +564,26 @@ const sendMsg = (user: string, msg: string): void => {
       width: 200px;
       height: 100%;
       line-height: 60px;
+    }
+
+    .userinfo-box {
+      float: right;
+      width: 40px;
+      height: 60px;
+
+      .icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 35px;
+        margin-top: 13px;
+        background-color: var(--theme-border);
+        line-height: 30px;
+        text-align: center;
+        cursor: pointer;
+        span {
+          font-size: 6px;
+        }
+      }
     }
   }
 
