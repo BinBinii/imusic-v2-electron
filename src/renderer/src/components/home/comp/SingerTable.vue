@@ -182,7 +182,6 @@ const loadMore = async () => {
         let newData = res.data.artists
         // 更新数据
         artists.value = [...artists.value, ...newData];
-
       }
     })
   } finally {
@@ -241,7 +240,7 @@ const showSingerInfo = (id: number): void => {
 
   .selectedItem {
     color: var(--theme-center-color);
-    background-color: var(--thme-span-background-color);
+    background-color: var(--theme-span-background-color);
   }
 }
 

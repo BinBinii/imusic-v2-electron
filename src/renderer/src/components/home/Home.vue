@@ -411,6 +411,7 @@ const handleLogin = (): void => {
     if (res) {
       userStore.getInfo()
       userInfo.value = userStore.getUserInfo
+      router.push('/home/song-table')
     }
   })
 }
@@ -503,7 +504,9 @@ const handelChooseSong = (song: any): void => {
 // 歌曲乱序
 const handleShuffleSong = (): void => {
   shuffleSongApi().then(res => {
-    chooseSongStore.syncSong(res.data.result)
+    if (res.data.code === '200') {
+      sendMsg('all', 'updateSong')
+    }
   })
 }
 
