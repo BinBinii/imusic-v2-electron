@@ -27,9 +27,9 @@
                   </n-icon>
                 </span>
                 <span class="title">{{ song['name'] }}</span>
-                <span class="singer" :title="singerSummary(song['artists'])">{{ singerSummary(song['artists']) }}</span>
-                <span class="album" :title="song['album']['name']">{{ song['album']['name'] }}</span>
-                <span class="duration">{{ millisecondsToMinutesAndSeconds(song['duration']) }}</span>
+                <span class="singer" :title="singerSummary(song['ar'])">{{ singerSummary(song['ar']) }}</span>
+                <span class="album" :title="song['al']['name']">{{ song['al']['name'] }}</span>
+                <span class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</span>
               </div>
               <n-pagination style="margin-top: 20px;position: absolute;
             left: 50%;
@@ -128,6 +128,7 @@ const fetchSong = (): void => {
   let type = searchSongParams.value.type
   searchSongParams.value.offset = (pageForm.value.page - 1) * searchSongParams.value.limit
   searchSong(searchSongParams.value).then(res => {
+    console.log(res)
     if (type === 1) { // 单曲
       dataCount.value = res.data.result.songCount
       songs.value = res.data.result.songs

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <n-config-provider :theme="theme">
+    <n-config-provider :theme="currentTheme === 'dark' ? darkTheme : null">
       <div class="menu-box">
         <div class="logo">
           <div class="chevron-box">
@@ -226,6 +226,7 @@ const progress = ref(0)
 const currentTime = ref('00:00')
 
 onMounted(() => {
+  checkAndSwitchTheme()
   router.push('/home/song-table')
   fetchHotDetail()
   userStore.getInfo().then(res => {
@@ -265,11 +266,17 @@ chooseSongStore.$subscribe((mutation, state) => {
     getSongDetailApi({
       ids: song['id']
     }).then(res => {
+      isPlay.value = false
+      audioRef.value?.pause()
+      audioRef.value!.src = ''
+      progress.value = 0
+      currentTime.value = '00:00'
       currentSongInfo.value = res.data.songs[0]
       getSongUrl()
     })
   }
   if (state.songList.length == 0) {
+    isPlay.value = false
     currentSongInfo.value = {}
     progress.value = 0
     currentTime.value = '00:00'
@@ -289,6 +296,26 @@ const switchTheme = (): void => {
     window.document.documentElement.setAttribute('theme', currentTheme.value);
     theme.value = null
   }
+}
+const checkAndSwitchTheme = (): void => {
+  let currentDate = new Date()
+
+  // 获取当前小时和分钟
+  let currentHour = currentDate.getHours();
+  let currentMinute = currentDate.getMinutes();
+
+  // 设定截止时间为17:30
+  const deadlineHour = 17;
+  const deadlineMinute = 30;
+
+  // 比较当前时间与截止时间
+  if (currentHour > deadlineHour || (currentHour === deadlineHour && currentMinute >= deadlineMinute)) {
+    currentTheme.value = 'dark'
+  } else {
+    currentTheme.value = 'light'
+  }
+
+  window.document.documentElement.setAttribute('theme', currentTheme.value);
 }
 
 /**
@@ -443,7 +470,7 @@ const getSongUrl = (): void => {
     currentSongMp3.value = res.data.data[0]
     setTimeout(() => {
       handleAudioPlay()
-    }, 500)
+    }, 1000)
   })
 }
 
@@ -478,11 +505,6 @@ const formattedCurrentTime = (): void => {
 
 // 下一首
 const nextSong = (): void => {
-  isPlay.value = false
-  audioRef.value?.pause()
-  audioRef.value!.src = ''
-  progress.value = 0
-  currentTime.value = '00:00'
   nextSongApi()
   setTimeout(() => {
     sendMsg('all', 'nextSong')
@@ -491,14 +513,18 @@ const nextSong = (): void => {
 
 // 添加音乐
 const handelChooseSong = (song: any): void => {
-  let chooseSongObj = {
-    song: song,
-    from: userStore.getUserInfo.nickname
-  }
-  addSongApi(chooseSongObj)
-  setTimeout(() => {
-    sendMsg('all', 'updateSong')
-  }, 500)
+  getSongDetailApi({
+    ids: song['id']
+  }).then(res => {
+    let chooseSongObj = {
+      song: res.data.songs[0],
+      from: userStore.getUserInfo.nickname
+    }
+    addSongApi(chooseSongObj)
+    setTimeout(() => {
+      sendMsg('all', 'updateSong')
+    }, 500)
+  })
 }
 
 // 歌曲乱序
@@ -583,6 +609,7 @@ const sendMsg = (user: string, msg: string): void => {
         line-height: 30px;
         text-align: center;
         cursor: pointer;
+
         span {
           font-size: 6px;
         }

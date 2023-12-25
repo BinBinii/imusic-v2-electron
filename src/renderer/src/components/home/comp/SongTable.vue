@@ -9,12 +9,13 @@
         <span class="duration">时长</span>
         <span class="choose">来自</span>
       </div>
-      <div class="song-item" v-if="chooseSongStore.getSongList.length > 0" v-for="(song, index) in chooseSongStore.getSongList">
+      <div class="song-item" v-if="chooseSongStore.getSongList.length > 0"
+        v-for="(song, index) in chooseSongStore.getSongList">
         <span class="number">{{ indexFilter(index) }}</span>
         <span class="title">{{ song['song']['name'] }}</span>
-        <span class="singer" :title="singerSummary(song['song']['artists'])">{{ singerSummary(song['song']['artists']) }}</span>
-        <span class="album" :title="song['song']['album']['name']">{{ song['song']['album']['name'] }}</span>
-        <span class="duration">{{ millisecondsToMinutesAndSeconds(song['song']['duration']) }}</span>
+        <span class="singer" :title="singerSummary(song['song']['ar'])">{{ singerSummary(song['song']['ar']) }}</span>
+        <span class="album" :title="song['song']['al']['name']">{{ song['song']['al']['name'] }}</span>
+        <span class="duration">{{ millisecondsToMinutesAndSeconds(song['song']['dt']) }}</span>
         <span class="choose">{{ song['from'] }}</span>
       </div>
       <div v-else class="empty-item">暂无音乐</div>
