@@ -230,6 +230,8 @@ onMounted(() => {
   router.push('/home/song-table')
   fetchHotDetail()
   userStore.getInfo().then(res => {
+    loginShowModal.value = false
+    isLogin.value = true
     userInfo.value = res
   }).catch(err => {
     console.log(err)
@@ -260,9 +262,10 @@ watch(searchForm, (newVal, _) => {
 //     getSongUrl()
 //   }
 // })
-chooseSongStore.$subscribe((mutation, state) => {
-  if (mutation.events['key'] === 'isPlaySong') {
-    let song = mutation.events['newValue']['song']
+chooseSongStore.$subscribe((_, state) => {
+  console.log(chooseSongStore.songLock)
+  if (chooseSongStore.songLock === false) {
+    let song = state.isPlaySong.song
     getSongDetailApi({
       ids: song['id']
     }).then(res => {
@@ -277,9 +280,11 @@ chooseSongStore.$subscribe((mutation, state) => {
   }
   if (state.songList.length == 0) {
     isPlay.value = false
-    currentSongInfo.value = {}
+    audioRef.value?.pause()
+    audioRef.value!.src = ''
     progress.value = 0
     currentTime.value = '00:00'
+    currentSongInfo.value = {}
   }
 })
 
@@ -473,7 +478,7 @@ const getSongUrl = (): void => {
     currentSongMp3.value = res.data.data[0]
     setTimeout(() => {
       handleAudioPlay()
-    }, 1000)
+    }, 300)
   })
 }
 
