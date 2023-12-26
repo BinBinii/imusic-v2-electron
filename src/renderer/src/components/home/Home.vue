@@ -233,8 +233,8 @@ onMounted(() => {
     userInfo.value = res
   }).catch(err => {
     console.log(err)
-    // loginShowModal.value = true
-    // isLogin.value = false
+    loginShowModal.value = true
+    isLogin.value = false
   })
   setTimeout(() => {
     initWebsocket()
@@ -436,9 +436,11 @@ const toSearchDetail = (order: string, id: number, item: any): void => {
 const handleLogin = (): void => {
   userStore.login(loginModel.value).then(res => {
     if (res) {
+      loginShowModal.value = false
       userStore.getInfo()
       userInfo.value = userStore.getUserInfo
-      router.push('/home/song-table')
+      // router.push('/home/song-table')
+      router.go(0)
     }
   })
 }
@@ -447,7 +449,8 @@ const handleLogin = (): void => {
  * 连接Netty服务器
  */
 const initWebsocket = (): void => {
-  let url = 'ws://127.0.0.1:8000/netty.io?data=' + userStore.getToken
+  // let url = 'ws://127.0.0.1:8000/netty.io?data=' + userStore.getToken
+  let url = 'ws://8.134.51.235/wss/netty.io?data=' + userStore.getToken
   socketStore.connect(url)
 }
 
