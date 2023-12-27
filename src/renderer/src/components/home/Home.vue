@@ -35,7 +35,7 @@
           <div class="userinfo-box">
             <div class="icon" @click="loginShowModal = true">
               <span v-if="!isLogin">尚未登录</span>
-              <span v-else>{{ userStore.getUserInfo.nickname }}</span>
+              <span v-else>{{ userInfo['nickname'] }}</span>
             </div>
           </div>
         </div>
@@ -229,14 +229,16 @@ onMounted(() => {
   checkAndSwitchTheme()
   router.push('/home/song-table')
   fetchHotDetail()
+  if (userStore.getToken === '' || userStore.getToken === null) {
+    loginShowModal.value = true
+    isLogin.value = false
+  }
   userStore.getInfo().then(res => {
     loginShowModal.value = false
     isLogin.value = true
     userInfo.value = res
   }).catch(err => {
     console.log(err)
-    loginShowModal.value = true
-    isLogin.value = false
   })
   setTimeout(() => {
     initWebsocket()
