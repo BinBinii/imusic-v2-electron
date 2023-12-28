@@ -81,10 +81,20 @@ export function getSongUrl(data) {
   });
 }
 
+// 获取音乐详情
 export function getSongDetail(data) {
   return request({
     url: '/song/detail',
     method: 'get',
     params: data
   });
+}
+
+// 登录
+export function login(data) {
+  return request({
+    url: '/login',
+    method: 'get',
+    params: data
+  })
 }

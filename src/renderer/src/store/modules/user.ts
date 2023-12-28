@@ -11,8 +11,10 @@ export type UserInfoType = {
 export interface IUserState {
   token: string;
   refreshToken: string;
+  cookie: string;
+  neteaseUserInfo: any;
   info: UserInfoType;
-  onlineUsers: string[]
+  onlineUsers: string[];
 }
 
 export const useUserStore = defineStore({
@@ -20,6 +22,8 @@ export const useUserStore = defineStore({
   state: (): IUserState => ({
     token: storage.get(ACCESS_TOKEN, ''),
     refreshToken: storage.get(REFRESH_TOKEN, ''),
+    cookie: '',
+    neteaseUserInfo: null,
     info: storage.get(CURRENT_USER, {}),
     onlineUsers: [],
   }),
@@ -28,13 +32,19 @@ export const useUserStore = defineStore({
       return this.token;
     },
     getRefreshToken(): string {
-      return this.refreshToken
+      return this.refreshToken;
+    },
+    getCookie(): string {
+      return this.cookie;
+    },
+    getNeteaseUserInfo(): any {
+      return this.neteaseUserInfo;
     },
     getUserInfo(): UserInfoType {
       return this.info;
     },
     getOnlineUsers(): string[] {
-      return this.onlineUsers
+      return this.onlineUsers;
     }
   },
   actions: {
@@ -42,13 +52,19 @@ export const useUserStore = defineStore({
       this.token = token;
     },
     setRefreshToken(refreshToken: string) {
-      this.refreshToken = refreshToken
+      this.refreshToken = refreshToken;
+    },
+    setCookie(cookie: string) {
+      this.cookie = cookie;
+    },
+    setNeteaseUserInfo(neteaseUserInfo: any) {
+      this.neteaseUserInfo = neteaseUserInfo;
     },
     setUserInfo(info: UserInfoType) {
       this.info = info;
     },
     setOnlineUsers(onlineUsers: string[]) {
-      this.onlineUsers = onlineUsers
+      this.onlineUsers = onlineUsers;
     },
     // 登录
     async login(params: any) {

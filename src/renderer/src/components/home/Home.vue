@@ -33,6 +33,13 @@
               size="small" placeholder="搜索"></n-input>
           </div>
           <div class="userinfo-box">
+            <n-popover style="font-size: 10px;height: 10px;line-height: 10px;" trigger="hover">
+              <template #trigger>
+                <div class="vip" :class="userStore.getNeteaseUserInfo.account.vipType !== 0 ? 'is-vip':''" @click="neteaseLoginShowModal = true">VIP</div>
+              </template>
+              <span v-if="userStore.getCookie === ''">尚未同步网易云账号</span>
+              <span v-else>VIP等级: {{ userStore.getNeteaseUserInfo.account.vipType }}</span>
+            </n-popover>
             <div class="icon" @click="loginShowModal = true">
               <span v-if="!isLogin">尚未登录</span>
               <span v-else>{{ userInfo['nickname'] }}</span>
@@ -147,18 +154,36 @@
           <n-button type="primary" @click="handleLogin">确定</n-button>
         </template>
       </n-modal>
+      <n-modal v-model:show="neteaseLoginShowModal" preset="dialog" role="dialog" aria-modal="true" title="Dialog">
+        <template #header>
+          <div>登录网易云音乐</div>
+        </template>
+        <div>
+          <n-form ref="formRef" :model="neteaseLoginModel" :rules="neteaseLoginRules" label-placement="left" label-width="auto">
+            <n-form-item label="邮箱" path="email">
+              <n-input v-model:value="neteaseLoginModel.email" placeholder="邮箱" />
+            </n-form-item>
+            <n-form-item label="密码" path="password">
+              <n-input v-model:value="neteaseLoginModel.password" type="password" placeholder="密码" />
+            </n-form-item>
+          </n-form>
+        </div>
+        <template #action>
+          <n-button type="primary" @click="handleNeteaseLogin">确定</n-button>
+        </template>
+      </n-modal>
     </n-config-provider>
     <audio ref="audioRef" :src="currentSongMp3['url']" @timeupdate="updateProgress"></audio>
   </div>
 </template>
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import { darkTheme, NConfigProvider, NInput, NIcon, NModal, NForm, NFormItem, NButton } from 'naive-ui';
+import { darkTheme, NConfigProvider, NInput, NIcon, NModal, NForm, NFormItem, NButton, NPopover } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
 // VolumeMedium, VolumeOff
 import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PauseCircle, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
-import { getHotDetail, searchSuggest, getSongUrl as getSongUrlApi, getSongDetail as getSongDetailApi } from '../../api/netease'
+import { getHotDetail, searchSuggest, getSongUrl as getSongUrlApi, getSongDetail as getSongDetailApi, login as neteaseLoginApi } from '../../api/netease'
 import { nextSong as nextSongApi, addSong as addSongApi, shuffleSong as shuffleSongApi } from '../../api/song'
 import { useUserStore } from '../../store/modules/user'
 import { useSocketStore } from '../../store/modules/webSocket'
@@ -217,6 +242,24 @@ const loginRules = ref({
     trigger: ['input']
   }
 })
+// 网易云登录
+const neteaseLoginShowModal = ref(false)
+const neteaseLoginModel = ref({
+  email: '',
+  password: ''
+})
+const neteaseLoginRules = ref({
+  email: {
+    required: true,
+    message: '请输入邮箱',
+    trigger: ['input']
+  },
+  password: {
+    required: true,
+    message: '请输入密码',
+    trigger: ['input']
+  }
+})
 // 歌曲
 const currentSongInfo = ref({} as any)
 const currentSongMp3 = ref({} as any)
@@ -265,7 +308,6 @@ watch(searchForm, (newVal, _) => {
 //   }
 // })
 chooseSongStore.$subscribe((_, state) => {
-  console.log(chooseSongStore.songLock)
   if (chooseSongStore.songLock === false) {
     let song = state.isPlaySong.song
     getSongDetailApi({
@@ -453,6 +495,18 @@ const handleLogin = (): void => {
 }
 
 /**
+ * 登录网易云账号
+ */
+const handleNeteaseLogin = (): void => {
+  neteaseLoginApi(neteaseLoginModel.value).then(res => {
+    neteaseLoginShowModal.value = false
+    const data = res.data
+    userStore.setNeteaseUserInfo(data)
+    userStore.setCookie(data.cookie)
+  })
+}
+
+/**
  * 连接Netty服务器
  */
 const initWebsocket = (): void => {
@@ -607,10 +661,26 @@ const sendMsg = (user: string, msg: string): void => {
 
     .userinfo-box {
       float: right;
-      width: 40px;
+      width: 65px;
       height: 60px;
 
+      .vip {
+        float: left;
+        font-size: 9px;
+        padding: 0px 3.5px;
+        border-radius: 3px;
+        background-color: #979797;
+        color: #FFF;
+        margin-top: 23px;
+        cursor: pointer;
+      }
+
+      .is-vip {
+        background-color: #d01a26;
+      }
+
       .icon {
+        float: right;
         width: 35px;
         height: 35px;
         border-radius: 35px;
