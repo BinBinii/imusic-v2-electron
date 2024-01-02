@@ -89,13 +89,6 @@ const userStore = useUserStore()
 const socketStore = useSocketStore()
 
 interface ChooseSongObj {
-  // songId: number;
-  // name: string;
-  // artistId: number;
-  // artistName: string;
-  // albumId: number;
-  // albumName: string;
-  // dt: number;
   song: any;
   from: string;
 }

@@ -27,7 +27,7 @@
               <span class="album">专辑</span>
               <span class="duration">时长</span>
             </div>
-            <div class="song-item" v-for="(song, index) in songs">
+            <div class="song-item" v-for="(song, index) in songs" @dblclick="handelChooseSong(song)">
               <span class="number">{{ indexFilter(index) }}</span>
               <span class="choose">
                 <n-icon class="icon" size="15">
@@ -63,17 +63,31 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { NTabs, NTabPane, NIcon } from 'naive-ui';
-import { Download } from '@vicons/tabler'
-import { getAlbum } from '../../../api/netease'
+import { Download } from '@vicons/tabler';
+import { getAlbum } from '../../../api/netease';
+import { addSong as addSongApi } from '../../../api/song';
 import { useRoute } from "vue-router";
-import { timestampToDate, indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils'
+import { timestampToDate, indexFilter, millisecondsToMinutesAndSeconds } from '../../../utils';
+import { useUserStore } from '../../../store/modules/user';
+import { useSocketStore } from '../../../store/modules/webSocket';
 
 const route = useRoute()
+
+const userStore = useUserStore()
+const socketStore = useSocketStore()
+
+interface ChooseSongObj {
+  song: any;
+  from: string;
+}
+
 const albumParams = ref({
   id: 0
 })
 const songs = ref([] as any[])
 const album = ref({})
+
+const chooseSongObj = ref({} as ChooseSongObj)
 
 onMounted(() => {
   albumParams.value.id = Number(route.query.id as string)
@@ -98,6 +112,26 @@ const singerSummary = (singers: any[]): string => {
     result += item['name'] + ' '
   })
   return result
+}
+
+// 添加音乐
+const handelChooseSong = (song: any): void => {
+  chooseSongObj.value = {
+    song: song,
+    from: userStore.getUserInfo.nickname
+  }
+  addSongApi(chooseSongObj.value)
+  setTimeout(() => {
+    sendMsg('all', 'updateSong')
+  }, 500)
+}
+/**
+ * 发送消息
+ * @param user 接受人ID
+ * @param msg  消息文本
+ */
+const sendMsg = (user: string, msg: string): void => {
+  socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
 }
 </script>
 <style scoped lang="less">

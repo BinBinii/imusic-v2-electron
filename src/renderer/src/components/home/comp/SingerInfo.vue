@@ -34,7 +34,7 @@
               <div class="music-box" v-if="hotSongs.list.length > 0">
                 <template v-for="(item, index) in hotSongs.list">
                   <div class="music-item" :class="index % 2 == 0 ? 'music-item-interval' : ''"
-                    v-if="index < hotSongs.num">
+                    v-if="index < hotSongs.num" @dblclick="handelChooseSong(item)">
                     <span class="index">{{ indexFilter(index) }}</span>
                     <span class="choose">
                       <n-icon class="icon" size="15">
@@ -64,7 +64,7 @@
                 <div class="title">{{ album.name }}</div>
                 <div class="music-box" v-if="album.songs.length > 0">
                   <template v-for="(item, index) in album.songs">
-                    <div class="music-item" :class="index % 2 == 0 ? 'music-item-interval' : ''" v-if="index < album.num">
+                    <div class="music-item" :class="index % 2 == 0 ? 'music-item-interval' : ''" v-if="index < album.num" @dblclick="handelChooseSong(item)">
                       <span class="index">{{ indexFilter(index) }}</span>
                       <span class="choose">
                         <n-icon class="icon" size="15">
@@ -105,12 +105,23 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { getArtists, getArtistAlbum, getAlbum } from '../../../api/netease';
+import { addSong as addSongApi } from '../../../api/song';
 import { NTabs, NTabPane, NIcon } from 'naive-ui';
 import { Download } from '@vicons/tabler'
 import { indexFilter, millisecondsToMinutesAndSeconds, timestampToDate } from '../../../utils/index'
 import { useRoute } from "vue-router";
+import { useUserStore } from '../../../store/modules/user';
+import { useSocketStore } from '../../../store/modules/webSocket';
 
 const route = useRoute()
+
+const userStore = useUserStore()
+const socketStore = useSocketStore()
+
+interface ChooseSongObj {
+  song: any;
+  from: string;
+}
 
 // 歌手信息
 const artistInfo = ref({} as any)
@@ -131,6 +142,7 @@ const albumParams = ref({
 const songRef = ref({} as Element)
 const isLoading = ref(false);
 
+const chooseSongObj = ref({} as ChooseSongObj)
 
 onMounted(() => {
   albumParams.value.id = Number(route.query.id as string)
@@ -207,6 +219,26 @@ const loadMore = async () => {
     // 加载完成后，设置加载状态为 false
     isLoading.value = false;
   }
+}
+
+// 添加音乐
+const handelChooseSong = (song: any): void => {
+  chooseSongObj.value = {
+    song: song,
+    from: userStore.getUserInfo.nickname
+  }
+  addSongApi(chooseSongObj.value)
+  setTimeout(() => {
+    sendMsg('all', 'updateSong')
+  }, 500)
+}
+/**
+ * 发送消息
+ * @param user 接受人ID
+ * @param msg  消息文本
+ */
+const sendMsg = (user: string, msg: string): void => {
+  socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
 }
 
 </script>
