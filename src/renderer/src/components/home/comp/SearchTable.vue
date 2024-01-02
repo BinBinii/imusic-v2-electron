@@ -26,7 +26,10 @@
                     <Download />
                   </n-icon>
                 </span>
-                <span class="title">{{ song['name'] }}</span>
+                <span class="title">
+                  {{ song['name'] }}
+                  <div class="vip" v-if="song['fee'] === 1">VIP</div>
+                </span>
                 <span class="singer" :title="singerSummary(song['ar'])">{{ singerSummary(song['ar']) }}</span>
                 <span class="album" :title="song['al']['name']">{{ song['al']['name'] }}</span>
                 <span class="duration">{{ millisecondsToMinutesAndSeconds(song['dt']) }}</span>
@@ -209,7 +212,7 @@ const handelChooseSong = (song: any): void => {
  * @param user 接受人ID
  * @param msg  消息文本
  */
- const sendMsg = (user: string, msg: string): void => {
+const sendMsg = (user: string, msg: string): void => {
   socketStore.sendMessage(JSON.stringify({ 'toUser': user, 'toMsg': msg }))
 }
 </script>
@@ -342,6 +345,19 @@ const handelChooseSong = (song: any): void => {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        .vip {
+          float: right;
+          font-size: 9px;
+          height: 14px;
+          line-height: 14px;
+          padding: 0px 3.5px;
+          border-radius: 3px;
+          margin-top: 9px;
+          margin-right: 9px;
+          background-color: #d01a26;
+          color: #FFF;
+        }
       }
 
       .singer {

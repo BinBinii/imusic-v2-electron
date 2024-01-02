@@ -12,7 +12,10 @@
       <div class="song-item" v-if="chooseSongStore.getSongList.length > 0"
         v-for="(song, index) in chooseSongStore.getSongList">
         <span class="number">{{ indexFilter(index) }}</span>
-        <span class="title">{{ song['song']['name'] }}</span>
+        <span class="title">
+          {{ song['song']['name'] }}
+          <div class="vip" v-if="song['song']['fee'] === 1">VIP</div>
+        </span>
         <span class="singer" :title="singerSummary(song['song']['ar'])">{{ singerSummary(song['song']['ar']) }}</span>
         <span class="album" :title="song['song']['al']['name']">{{ song['song']['al']['name'] }}</span>
         <span class="duration">{{ millisecondsToMinutesAndSeconds(song['song']['dt']) }}</span>
@@ -142,6 +145,19 @@ const singerSummary = (singers: any[]): string => {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      .vip {
+        float: right;
+        font-size: 9px;
+        height: 14px;
+        line-height: 14px;
+        padding: 0px 3.5px;
+        border-radius: 3px;
+        margin-top: 9px;
+        margin-right: 9px;
+        background-color: #d01a26;
+        color: #FFF;
+      }
     }
 
     .singer {

@@ -41,7 +41,11 @@
                         <Download />
                       </n-icon>
                     </span>
-                    <span class="name">{{ item.name }}<text v-if="item.alia[0]">({{ item.alia[0] }})</text></span>
+                    <span class="name">
+                      {{ item.name }}
+                      <div class="vip" v-if="item.fee === 1">VIP</div>
+                      <text v-if="item.alia[0]">({{ item.alia[0] }})</text>
+                    </span>
                     <span class="dt">{{ millisecondsToMinutesAndSeconds(item.dt) }}</span>
                   </div>
                 </template>
@@ -67,14 +71,18 @@
                           <Download />
                         </n-icon>
                       </span>
-                      <span class="name">{{ item.name }}<text v-if="item.alia[0]">({{ item.alia[0] }})</text></span>
+                      <span class="name">
+                        {{ item.name }}
+                        <div class="vip" v-if="item.fee === 1">VIP</div>
+                        <text v-if="item.alia[0]">({{ item.alia[0] }})</text>
+                      </span>
                       <span class="dt">{{ millisecondsToMinutesAndSeconds(item.dt) }}</span>
                     </div>
                   </template>
-                  <!-- <div class="more" @click="album.num = album.songs.length" v-if="album.songs.length > album.num">查看全部 >
-                  </div> -->
-                  <div class="more" @click="album.num = album.songs.length">查看全部 >
+                  <div class="more" @click="album.num = album.songs.length" v-if="album.songs.length > album.num">查看全部 >
                   </div>
+                  <!-- <div class="more" @click="album.num = album.songs.length">查看全部 >
+                  </div> -->
                 </div>
               </div>
             </div>
@@ -168,7 +176,7 @@ const fetchArtistAlbum = (): void => {
  */
 const handleScroll = () => {
   const container = songRef.value
-  if (container.scrollHeight - container.scrollTop === container.clientHeight) {
+  if (Math.floor(container.scrollHeight - container.scrollTop) === container.clientHeight || Math.ceil(container.scrollHeight - container.scrollTop) === container.clientHeight) {
     loadMore();
   }
 }
@@ -270,6 +278,7 @@ const loadMore = async () => {
         border-radius: 8px;
         background-color: #333;
       }
+
       .publish-time {
         font-size: 12px;
         color: var(--theme-secondary);
@@ -325,6 +334,19 @@ const loadMore = async () => {
             width: calc(100% - 35px - 40px - 70px - 10px);
             color: var(--theme-color);
 
+            .vip {
+              float: right;
+              font-size: 9px;
+              height: 14px;
+              line-height: 14px;
+              padding: 0px 3.5px;
+              border-radius: 3px;
+              margin-top: 9px;
+              margin-right: 9px;
+              background-color: #d01a26;
+              color: #FFF;
+            }
+
             text {
               color: var(--theme-secondary);
               margin-left: 10px;
@@ -366,6 +388,7 @@ const loadMore = async () => {
       }
     }
   }
+
   .detail-box {
     .title {
       font-weight: 500;

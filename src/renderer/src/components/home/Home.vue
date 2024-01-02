@@ -35,7 +35,8 @@
           <div class="userinfo-box">
             <n-popover style="font-size: 10px;height: 10px;line-height: 10px;" trigger="hover">
               <template #trigger>
-                <div class="vip" :class="userStore.getNeteaseUserInfo.account.vipType !== 0 ? 'is-vip':''" @click="neteaseLoginShowModal = true">VIP</div>
+                <div class="vip" v-if="userStore.getCookie === ''" @click="neteaseLoginShowModal = true">VIP</div>
+                <div class="vip" v-else :class="userStore.getNeteaseUserInfo.account.vipType !== 0 ? 'is-vip':''" @click="neteaseLoginShowModal = true">VIP</div>
               </template>
               <span v-if="userStore.getCookie === ''">尚未同步网易云账号</span>
               <span v-else>VIP等级: {{ userStore.getNeteaseUserInfo.account.vipType }}</span>
@@ -311,7 +312,7 @@ chooseSongStore.$subscribe((_, state) => {
   if (chooseSongStore.songLock === false) {
     let song = state.isPlaySong.song
     getSongDetailApi({
-      ids: song['id']
+      ids: song['id'],
     }).then(res => {
       isPlay.value = false
       audioRef.value?.pause()
@@ -529,7 +530,8 @@ const singerSummary = (singers: any[]): string => {
 // 获取歌曲Mp3 url
 const getSongUrl = (): void => {
   getSongUrlApi({
-    id: currentSongInfo.value['id']
+    id: currentSongInfo.value['id'],
+    cookie: userStore.getCookie,
   }).then(res => {
     currentSongMp3.value = res.data.data[0]
     setTimeout(() => {
