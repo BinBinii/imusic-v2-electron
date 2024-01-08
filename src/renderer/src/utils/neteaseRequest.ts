@@ -3,8 +3,8 @@ import axios from 'axios'
 // 创建axios
 const $http = axios.create({
     //设置默认请求地址
-    baseURL: '/netease',
-    // baseURL: 'http://8.134.51.235/netease',
+    // baseURL: '/netease',
+    baseURL: 'http://8.134.51.235/netease',
     //设置请求超时时间
     timeout: 5000,
     //设置请求头

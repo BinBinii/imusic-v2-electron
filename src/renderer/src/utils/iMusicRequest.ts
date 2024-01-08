@@ -7,8 +7,8 @@ import { ACCESS_TOKEN } from '../store/mutation-types';
 // 创建axios
 const $http = axios.create({
     //设置默认请求地址
-    baseURL: '/music',
-    // baseURL: 'http://8.134.51.235/music',
+    // baseURL: '/music',
+    baseURL: 'http://8.134.51.235/music',
     //设置请求超时时间
     timeout: 5000,
     //设置请求头
