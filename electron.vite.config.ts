@@ -24,7 +24,7 @@ export default defineConfig({
           rewrite: (path) => path.replace(/^\/netease/, '')
         },
         '/music': {
-          target: 'http://127.0.0.1:9000',
+          target: 'http://127.0.0.1:9900',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/music/, '')
         }
