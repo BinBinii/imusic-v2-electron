@@ -33,18 +33,32 @@
               size="small" placeholder="搜索"></n-input>
           </div>
           <div class="userinfo-box">
+            <n-popover trigger="hover">
+              <template #trigger>
+                <n-icon size="18" style="float: left;margin-right: 10px;margin-top: 21px">
+                  <QrcodeOutlined />
+                </n-icon>
+              </template>
+              <n-qr-code :value="'http://8.134.51.235/web?key=binbini0626'" color="#18A058" :size="180" />
+            </n-popover>
+
             <n-popover style="font-size: 10px;height: 10px;line-height: 10px;" trigger="hover">
               <template #trigger>
                 <div class="vip" v-if="userStore.getCookie === ''" @click="neteaseLoginShowModal = true">VIP</div>
-                <div class="vip" v-else :class="userStore.getNeteaseUserInfo.account.vipType !== 0 ? 'is-vip':''" @click="neteaseLoginShowModal = true">VIP</div>
+                <div class="vip" v-else :class="userStore.getNeteaseUserInfo.account.vipType !== 0 ? 'is-vip' : ''"
+                  @click="neteaseLoginShowModal = true">VIP</div>
               </template>
               <span v-if="userStore.getCookie === ''">尚未同步网易云账号</span>
               <span v-else>VIP等级: {{ userStore.getNeteaseUserInfo.account.vipType }}</span>
             </n-popover>
-            <div class="icon" @click="loginShowModal = true">
-              <span v-if="!isLogin">尚未登录</span>
-              <span v-else>{{ userInfo['nickname'] }}</span>
+            <div class="icon" v-if="!isLogin" @click="loginShowModal = true">
+              <span>尚未登录</span>
             </div>
+            <n-dropdown v-else trigger="hover" size="small" :options="userOptions" @select="userHandleSelect">
+              <div class="icon">
+                <span>{{ userInfo['nickname'] }}</span>
+              </div>
+            </n-dropdown>
           </div>
         </div>
       </div>
@@ -160,7 +174,8 @@
           <div>登录网易云音乐</div>
         </template>
         <div>
-          <n-form ref="formRef" :model="neteaseLoginModel" :rules="neteaseLoginRules" label-placement="left" label-width="auto">
+          <n-form ref="formRef" :model="neteaseLoginModel" :rules="neteaseLoginRules" label-placement="left"
+            label-width="auto">
             <n-form-item label="邮箱" path="email">
               <n-input v-model:value="neteaseLoginModel.email" placeholder="邮箱" />
             </n-form-item>
@@ -179,10 +194,11 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import { darkTheme, NConfigProvider, NInput, NIcon, NModal, NForm, NFormItem, NButton, NPopover } from 'naive-ui';
+import { darkTheme, NConfigProvider, NInput, NIcon, NModal, NForm, NFormItem, NButton, NPopover, NDropdown, NQrCode } from 'naive-ui';
 import type { GlobalTheme } from 'naive-ui'
 // VolumeMedium, VolumeOff
 import { ChevronBackOutline, ChevronForwardOutline, CaretForwardCircle, PlaySkipBack, PauseCircle, PlaySkipForward, Shuffle, VolumeLow } from '@vicons/ionicons5'
+import { QrcodeOutlined } from '@vicons/antd'
 import { QueueMusicRound, MusicNoteRound, AlbumOutlined, PersonOutlineRound } from '@vicons/material'
 import { getHotDetail, searchSuggest, getSongUrl as getSongUrlApi, getSongDetail as getSongDetailApi, login as neteaseLoginApi } from '../../api/netease'
 import { nextSong as nextSongApi, addSong as addSongApi, shuffleSong as shuffleSongApi } from '../../api/song'
@@ -261,6 +277,20 @@ const neteaseLoginRules = ref({
     trigger: ['input']
   }
 })
+const userOptions = ref([
+  {
+    label: '个人资料',
+    key: 'person'
+  },
+  {
+    label: '设置',
+    key: 'setting'
+  },
+  {
+    label: '登出',
+    key: 'logout'
+  }
+])
 // 歌曲
 const currentSongInfo = ref({} as any)
 const currentSongMp3 = ref({} as any)
@@ -366,6 +396,14 @@ const checkAndSwitchTheme = (): void => {
   }
 
   window.document.documentElement.setAttribute('theme', currentTheme.value);
+}
+
+/**
+ * 用户下拉操作框
+ * @param key 
+ */
+const userHandleSelect = (key: string): void => {
+  console.log(key)
 }
 
 /**
@@ -663,7 +701,7 @@ const sendMsg = (user: string, msg: string): void => {
 
     .userinfo-box {
       float: right;
-      width: 65px;
+      width: 95px;
       height: 60px;
 
       .vip {
