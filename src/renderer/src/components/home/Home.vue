@@ -978,7 +978,7 @@ const sendMsg = (user: string, msg: string): void => {
       float: left;
       width: 50px;
       height: 50px;
-      background-color: #CCC;
+      background-color: var(--theme-border);
       border-radius: 5px;
     }
 
