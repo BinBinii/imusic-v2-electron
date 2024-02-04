@@ -436,16 +436,8 @@ const handleSearch = debounce((value) => {
 const brightenKeyword = (val): any => {
   let keyword = searchForm.value.keywords
   if (keyword.length > 0) {
-    let keywordArr = keyword.split("");
-    val = val + "";
-    keywordArr.forEach(item => {
-      if (val.indexOf(item) !== -1 && item !== "" && item !== " ") {
-        val = val.replace(
-          new RegExp(item, 'g'),
-          '<font color="#85B9E6">' + item + "</font>"
-        );
-      }
-    });
+    let reg = new RegExp(keyword, "g")
+    val = val.replace(reg, `<font color="#85B9E6">${keyword}</font>`)
   }
   return val
 }
